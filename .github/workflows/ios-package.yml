@@ -1,0 +1,33 @@
+name: Package (iOS)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  clean:
+
+    runs-on: macos-12
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Clean
+      run: xcodebuild clean -scheme $SCHEME -destination "$DESTINATION"
+      env:
+          SCHEME: CrystalViewUtilities
+          DESTINATION: platform=iOS Simulator,name=iPhone 13 Pro
+
+  build:
+    needs: clean
+
+    runs-on: macos-12
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Clean Build
+      run: xcodebuild build -scheme $SCHEME -destination "$DESTINATION"
+      env:
+          SCHEME: CrystalViewUtilities
+          DESTINATION: platform=iOS Simulator,name=iPhone 13 Pro
