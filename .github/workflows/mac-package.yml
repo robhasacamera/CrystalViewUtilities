@@ -16,7 +16,7 @@ jobs:
     - name: Clean
       run: xcodebuild clean -scheme $SCHEME -destination "$DESTINATION"
       env:
-          SCHEME: CrystalButtonKit
+          SCHEME: CrystalViewUtilities
           DESTINATION: platform=macOS
 
   build:
@@ -29,5 +29,5 @@ jobs:
     - name: Clean Build
       run: xcodebuild build -scheme $SCHEME -destination "$DESTINATION"
       env:
-          SCHEME: CrystalButtonKit
+          SCHEME: CrystalViewUtilities
           DESTINATION: platform=macOS
