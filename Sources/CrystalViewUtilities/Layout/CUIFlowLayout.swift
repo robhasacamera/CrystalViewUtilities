@@ -204,11 +204,26 @@ private extension Array where Element == LayoutSubview {
 }
 
 struct CUIFlowLayout_Previews: PreviewProvider {
+    static func text(for index: Int) -> String {
+        if index % 7 == 0{
+            return "wider \(index)"
+        } else if index % 9 == 0 {
+            return "really\ntall\n\(index)"
+        } else if index % 3 == 0 {
+            return "taller\n\(index)"
+        }
+
+        return "\(index)"
+    }
+
     static var previews: some View {
         if #available(iOS 16, *) {
             return CUIFlowLayout {
-                ForEach(0 ..< 100, id: \.self) { index in
-                    Text("\(index)")
+                ForEach(0 ..< 50, id: \.self) { index in
+                    Text(text(for: index))
+                        .padding(.standardSpacing)
+                        .background(.gray)
+                        .clipShape(RoundedRectangle(cornerRadius: .cornerRadius))
                 }
             }
             .padding()
