@@ -26,12 +26,23 @@
 
 import SwiftUI
 
+/**
+ * Created a layout that flows from one row to the next.
+ *
+ * Rows are sized to fit as many elements as possible horizontally before wrapping to the next line.
+ * Rows will be as tall as their tallest element and elements are centered aligned in the row.
+ */
 @available(iOS 16, *)
 public struct CUIFlowLayout: Layout {
     let horizontalSpacing: CGFloat
     let verticalSpacing: CGFloat
 
-    // TODO: Document
+    // TODO: Add alignment options for row (center, top, bottom)
+    // TODO: Add alignment options for layout as a whole (leading, center, trailing), this will probably be much harder
+    /// Creates a flow layout using the provided spacing.
+    /// - Parameters:
+    ///   - horizontalSpacing: Spacing between elements in the row.
+    ///   - verticalSpacing: Spacing between rows
     public init(
         horizontalSpacing: CGFloat = .standardSpacing,
         verticalSpacing: CGFloat = .standardSpacing
@@ -46,6 +57,7 @@ public struct CUIFlowLayout: Layout {
     ) -> (rows: [[LayoutSubview]], width: CGFloat) {
         var maxWidth: CGFloat = 0
 
+        // For special cases, it'll place one item per row.
         if let width = proposal.width,
            proposal != .zero,
            proposal != .infinity,
@@ -56,7 +68,7 @@ public struct CUIFlowLayout: Layout {
 
         var rows: [[LayoutSubview]] = []
 
-        var actualWidth: CGFloat = 0
+        var width: CGFloat = 0
         var currentRowWidth: CGFloat = 0
 
         for subview in subviews {
@@ -90,12 +102,12 @@ public struct CUIFlowLayout: Layout {
                 rows[rows.count - 1] = currentRow
             }
 
-            if currentRowWidth > actualWidth {
-                actualWidth = currentRowWidth
+            if currentRowWidth > width {
+                width = currentRowWidth
             }
         }
 
-        return (rows: rows, width: actualWidth)
+        return (rows: rows, width: width)
     }
 
     // TODO: Handle vertical layouts as well
