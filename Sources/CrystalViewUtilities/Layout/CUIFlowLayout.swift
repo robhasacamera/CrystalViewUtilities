@@ -82,14 +82,13 @@ public struct CUIFlowLayout: Layout {
 
             currentRowWidth += subviewWidth
 
-            if subviewWidth > maxWidth {
-                currentRow = [subview]
+            if currentRowWidth > maxWidth {
+                rows.append([subview])
                 currentRowWidth = subviewWidth
             } else {
                 currentRow.append(subview)
+                rows[rows.count - 1] = currentRow
             }
-
-            rows[rows.endIndex] = currentRow
 
             if currentRowWidth > actualWidth {
                 actualWidth = currentRowWidth
@@ -99,7 +98,7 @@ public struct CUIFlowLayout: Layout {
         return (rows: rows, width: actualWidth)
     }
 
-    // TODO: Handle vertical and horizontal layouts
+    // TODO: Handle vertical layouts as well
     public func sizeThatFits(
         proposal: ProposedViewSize,
         subviews: Subviews,
@@ -153,7 +152,17 @@ public struct CUIFlowLayout: Layout {
 
                 x += subviewWidth / 2
 
-                subview.place(at: CGPoint(x: x, y: y), proposal: proposal)
+                subview.place(
+                    at: CGPoint(
+                        x: x + bounds.origin.x,
+                        y: y + bounds.origin.y
+                    ),
+                    anchor: .center,
+                    proposal: ProposedViewSize(
+                        width: subviewWidth,
+                        height: rowHeight
+                    )
+                )
 
                 x += subviewWidth / 2
             }
@@ -194,14 +203,19 @@ private extension Array where Element == LayoutSubview {
     }
 }
 
-// TODO: Create preview for this
- @available(iOS 16, *)
- struct CUIFlowLayout_Previews: PreviewProvider {
+struct CUIFlowLayout_Previews: PreviewProvider {
     static var previews: some View {
-        CUIFlowLayout {
-            ForEach(0..<100, id: \.self) { _ in
-                Rectangle().frame(width: 50, height: 50)
+        if #available(iOS 16, *) {
+            return CUIFlowLayout {
+                ForEach(0 ..< 100, id: \.self) { index in
+                    Text("\(index)")
+                }
             }
+            .padding()
+            .background(.gray.opacity(0.5))
+            .clipShape(RoundedRectangle(cornerRadius: .cornerRadius))
+        } else {
+            return EmptyView()
         }
     }
- }
+}
