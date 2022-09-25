@@ -32,7 +32,7 @@ import SwiftUI
  * Rows are sized to fit as many elements as possible horizontally before wrapping to the next line.
  * Rows will be as tall as their tallest element and elements are centered aligned in the row.
  */
-@available(iOS 16, *)
+@available(iOS 16, macOS 15.6, *)
 public struct CUIFlowLayout: Layout {
     let horizontalSpacing: CGFloat
     let verticalSpacing: CGFloat
@@ -229,7 +229,7 @@ struct CUIFlowLayout_Previews: PreviewProvider {
     }
 
     static var previews: some View {
-        if #available(iOS 16, *) {
+        if #available(iOS 16, macOS 15.6, *) {
             return CUIFlowLayout {
                 ForEach(0 ..< 50, id: \.self) { index in
                     Text(text(for: index))

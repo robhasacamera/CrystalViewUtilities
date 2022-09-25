@@ -9,7 +9,7 @@ on:
 jobs:
   clean:
 
-    runs-on: macos-12
+    runs-on: macos-12.6
 
     steps:
     - uses: actions/checkout@v3
@@ -17,12 +17,12 @@ jobs:
       run: xcodebuild clean -scheme $SCHEME -destination "$DESTINATION"
       env:
           SCHEME: CrystalViewUtilities
-          DESTINATION: platform=macOS
+          DESTINATION: platform=macOS,OS=12.6
 
   build:
     needs: clean
 
-    runs-on: macos-12
+    runs-on: macos-12.6
 
     steps:
     - uses: actions/checkout@v3
@@ -30,4 +30,4 @@ jobs:
       run: xcodebuild build -scheme $SCHEME -destination "$DESTINATION"
       env:
           SCHEME: CrystalViewUtilities
-          DESTINATION: platform=macOS
+          DESTINATION: platform=macOS,OS=12.6
