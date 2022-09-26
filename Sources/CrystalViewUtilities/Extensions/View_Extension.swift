@@ -99,51 +99,51 @@ public extension View {
     #endif
 }
 
-private struct FullScreenCoverContainer<OriginalContent, PresentedContent>: View where OriginalContent: View, PresentedContent: View {
-    @State
-    var internalIsPresented: Bool = false
+#if os(iOS)
+    private struct FullScreenCoverContainer<OriginalContent, PresentedContent>: View where OriginalContent: View, PresentedContent: View {
+        @State
+        var internalIsPresented: Bool = false
 
-    @Binding
-    var isPresented: Bool
+        @Binding
+        var isPresented: Bool
 
-    var onDismiss: CUIAction?
+        var onDismiss: CUIAction?
 
-    var originalContent: OriginalContent
-    var presentedContent: PresentedContent
+        var originalContent: OriginalContent
+        var presentedContent: PresentedContent
 
-    internal init(
-        isPresented: Binding<Bool>,
-        onDismiss: CUIAction? = nil,
-        originalContent: OriginalContent,
-        presentedContent: PresentedContent
-    ) {
-        self._isPresented = isPresented
-        self.onDismiss = onDismiss
-        self.originalContent = originalContent
-        self.presentedContent = presentedContent
-        self.internalIsPresented = isPresented.wrappedValue
-    }
+        internal init(
+            isPresented: Binding<Bool>,
+            onDismiss: CUIAction? = nil,
+            originalContent: OriginalContent,
+            presentedContent: PresentedContent
+        ) {
+            self._isPresented = isPresented
+            self.onDismiss = onDismiss
+            self.originalContent = originalContent
+            self.presentedContent = presentedContent
+            self.internalIsPresented = isPresented.wrappedValue
+        }
 
-    var body: some View {
-        // FIXME: Not sure why it needs to be nested in a ZStack to work, but it won't work unless it's nested in another view
-        ZStack {
-            originalContent
-                .onChange(of: isPresented, perform: { _ in
-                    withoutAnimation {
-                        internalIsPresented.toggle()
+        var body: some View {
+            // FIXME: Not sure why it needs to be nested in a ZStack to work, but it won't work unless it's nested in another view
+            ZStack {
+                originalContent
+                    .onChange(of: isPresented, perform: { _ in
+                        withoutAnimation {
+                            internalIsPresented.toggle()
+                        }
+                    })
+                    .fullScreenCover(
+                        isPresented: $internalIsPresented,
+                        onDismiss: onDismiss
+                    ) {
+                        presentedContent
                     }
-                })
-                .fullScreenCover(
-                    isPresented: $internalIsPresented,
-                    onDismiss: onDismiss
-                ) {
-                    presentedContent
-                }
+            }
         }
     }
-}
 
-#if os(iOS)
     struct NoAnimationFullScreenCover_Previews: PreviewProvider {
         struct Preview: View {
             @State
