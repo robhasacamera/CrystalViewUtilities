@@ -26,7 +26,7 @@
 
 import SwiftUI
 
-extension Image {
+public extension Image {
     func centered() -> some View {
         GeometryReader { geo in
             self
