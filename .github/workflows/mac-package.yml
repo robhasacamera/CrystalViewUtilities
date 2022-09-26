@@ -17,7 +17,7 @@ jobs:
       run: xcodebuild clean -scheme $SCHEME -destination "$DESTINATION"
       env:
           SCHEME: CrystalViewUtilities
-          DESTINATION: platform=macOS,OS=12.6
+          DESTINATION: platform=macOS
 
   build:
     needs: clean
@@ -30,4 +30,4 @@ jobs:
       run: xcodebuild build -scheme $SCHEME -destination "$DESTINATION"
       env:
           SCHEME: CrystalViewUtilities
-          DESTINATION: platform=macOS,OS=12.6
+          DESTINATION: platform=macOS

@@ -17,7 +17,7 @@ jobs:
       run: xcodebuild clean -scheme $SCHEME -destination "$DESTINATION"
       env:
           SCHEME: CrystalViewUtilities
-          DESTINATION: platform=iOS Simulator,OS=16.0name=iPhone 13 Pro
+          DESTINATION: platform=iOS Simulator,name=iPhone 13 Pro
 
   build:
     needs: clean
@@ -30,4 +30,4 @@ jobs:
       run: xcodebuild build -scheme $SCHEME -destination "$DESTINATION"
       env:
           SCHEME: CrystalViewUtilities
-          DESTINATION: platform=iOS Simulator,OS=16.0,name=iPhone 13 Pro
+          DESTINATION: platform=iOS Simulator,name=iPhone 13 Pro
