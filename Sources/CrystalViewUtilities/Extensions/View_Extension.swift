@@ -46,6 +46,18 @@ public extension View {
         }
     }
 
+    /// Wraps actions that should be exceuted without animation.
+    ///
+    /// Adapted from: [Asperi's](https://stackoverflow.com/users/12299030/asperi) [answer on Stack Overflow] (https://stackoverflow.com/a/72973172/898984)
+    /// - Parameter action: Action to execute without triggerring an animation.
+    func withoutAnimation(action: @escaping () -> Void) {
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) {
+            action()
+        }
+    }
+
     /// Must use casting when passing in a nil or optional value.
     ///
     /// Example:
@@ -63,40 +75,28 @@ public extension View {
         var asHostingController: UIViewController {
             return UIHostingController(rootView: self)
         }
-    #endif
 
-    // TODO: Document
-    /// Presents a Full Screen Cover, without the usual slide up animation.
-    ///
-    /// Refer to `fullScreenCover(isPresented:onDismiss:content:)` for additional documentation.
-    /// - Parameters:
-    ///   - isPresented: A binding to a Boolean value that determines whether to present the sheet.
-    ///   - onDismiss: The closure to execute when dismissing the modal view.
-    ///   - content: A closure that returns the content of the modal view.
-    func fullScreenCoverWithoutAnimation<Content>(
-        isPresented: Binding<Bool>,
-        onDismiss: (() -> Void)? = nil,
-        @ViewBuilder content: @escaping () -> Content
-    ) -> some View where Content: View {
-        FullScreenCoverContainer(
-            isPresented: isPresented,
-            onDismiss: onDismiss,
-            originalContent: self,
-            presentedContent: content()
-        )
-    }
-
-    /// Wraps actions that should be exceuted without animation.
-    ///
-    /// Adapted from: [Asperi's](https://stackoverflow.com/users/12299030/asperi) [answer on Stack Overflow] (https://stackoverflow.com/a/72973172/898984)
-    /// - Parameter action: Action to execute without triggerring an animation.
-    func withoutAnimation(action: @escaping () -> Void) {
-        var transaction = Transaction()
-        transaction.disablesAnimations = true
-        withTransaction(transaction) {
-            action()
+        // TODO: Document
+        /// Presents a Full Screen Cover, without the usual slide up animation.
+        ///
+        /// Refer to `fullScreenCover(isPresented:onDismiss:content:)` for additional documentation.
+        /// - Parameters:
+        ///   - isPresented: A binding to a Boolean value that determines whether to present the sheet.
+        ///   - onDismiss: The closure to execute when dismissing the modal view.
+        ///   - content: A closure that returns the content of the modal view.
+        func fullScreenCoverWithoutAnimation<Content>(
+            isPresented: Binding<Bool>,
+            onDismiss: (() -> Void)? = nil,
+            @ViewBuilder content: @escaping () -> Content
+        ) -> some View where Content: View {
+            FullScreenCoverContainer(
+                isPresented: isPresented,
+                onDismiss: onDismiss,
+                originalContent: self,
+                presentedContent: content()
+            )
         }
-    }
+    #endif
 }
 
 private struct FullScreenCoverContainer<OriginalContent, PresentedContent>: View where OriginalContent: View, PresentedContent: View {
@@ -143,47 +143,48 @@ private struct FullScreenCoverContainer<OriginalContent, PresentedContent>: View
     }
 }
 
-struct NoAnimationFullScreenCover_Previews: PreviewProvider {
-    struct Preview: View {
-        @State
-        var showCover = false
-        @State
-        var showAlert = false
-        @State
-        var alpha: CGFloat = 0.0
+#if os(iOS)
+    struct NoAnimationFullScreenCover_Previews: PreviewProvider {
+        struct Preview: View {
+            @State
+            var showCover = false
+            @State
+            var showAlert = false
+            @State
+            var alpha: CGFloat = 0.0
 
-        var body: some View {
-            Button("showCover=\(showCover ? "true" : "false")") {
-                showCover.toggle()
-                showAlert = true
-            }
-            .fullScreenCoverWithoutAnimation(isPresented: $showCover) {
-                ZStack {
-                    Color.gray
-                        .onAppear {
-                            withAnimation {
-                                alpha = 1.0
+            var body: some View {
+                Button("showCover=\(showCover ? "true" : "false")") {
+                    showCover.toggle()
+                    showAlert = true
+                }
+                .fullScreenCoverWithoutAnimation(isPresented: $showCover) {
+                    ZStack {
+                        Color.gray
+                            .onAppear {
+                                withAnimation {
+                                    alpha = 1.0
+                                }
                             }
-                        }
-                        // FIXME: This won't ever trigger. Will need to make my own present with fade
-                        .onDisappear {
-                            withAnimation {
-                                alpha = 0.0
+                            // FIXME: This won't ever trigger. Will need to make my own present with fade
+                            .onDisappear {
+                                withAnimation {
+                                    alpha = 0.0
+                                }
                             }
+                            .opacity(alpha)
+
+                        Button("showCover=\(showCover ? "true" : "false")") {
+                            showCover.toggle()
+                            showAlert = true
                         }
-                        .opacity(alpha)
-
-
-                    Button("showCover=\(showCover ? "true" : "false")") {
-                        showCover.toggle()
-                        showAlert = true
                     }
                 }
             }
         }
-    }
 
-    static var previews: some View {
-        Preview()
+        static var previews: some View {
+            Preview()
+        }
     }
-}
+#endif
