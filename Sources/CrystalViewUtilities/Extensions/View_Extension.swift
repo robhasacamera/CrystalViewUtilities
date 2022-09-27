@@ -64,6 +64,9 @@ public extension View {
     /// ```
     /// .optionalBackground(optionalColor as Color?)
     /// ```
+    /// - Parameters:
+    ///   - style: An instance of a type that conforms to `ShapeStyle` that SwiftUI draws behind the modified view.
+    ///   - edges: The set of edges for which to ignore safe area insets when adding the background. The default value is all. Specify an empty set to respect safe area insets on all edges.
     func optionalBackground<S>(_ style: S?, ignoresSafeAreaEdges edges: Edge.Set = .all) -> some View where S: ShapeStyle {
         self.if(style != nil) { view in
             view.background(style!, ignoresSafeAreaEdges: edges)
@@ -79,11 +82,13 @@ public extension View {
         // TODO: Document
         /// Presents a Full Screen Cover, without the usual slide up animation.
         ///
-        /// Refer to `fullScreenCover(isPresented:onDismiss:content:)` for additional documentation.
+        /// Refer to `fullScreenCover(isPresented:onDismiss:content:)` for
+        /// additional documentation. This version of full screen cover also provides a transparent
+        /// background.
         /// - Parameters:
         ///   - isPresented: A binding to a Boolean value that determines whether to present the sheet.
         ///   - onDismiss: The closure to execute when dismissing the modal view.
-        ///   - content: A closure that returns the content of the modal view.
+        ///   - content: The closure to execute when dismissing the modal view.
         func fullScreenCoverWithoutAnimation<Content>(
             isPresented: Binding<Bool>,
             onDismiss: (() -> Void)? = nil,
@@ -97,7 +102,17 @@ public extension View {
             )
         }
 
+        // TODO: Consider adding a convienance method for presenting a window that takes only content. There can be a closure that passes in a CUIStylizedWindow and returns some CUIStylizedWindow so it can be fully customized.
         // TODO: Document
+        /// Presents a view fullscreen, optionally dimming the background.
+        ///
+        /// This also provides an dismissal by tapping on any any area not covered by the content, i.e. the background. When this option is enabled, tap to dismiss will occur whether or not the dimmed option is used. If the entire space of the screen is taken up, there will be no background available to tap on.
+        /// - Parameters:
+        ///   - isPresented: A binding to a Boolean value that determines whether to present the provided content.
+        ///   - dimmed: A Boolean that indicates whether the background should be dimmed with a transparent color. Default value is `true`.
+        ///   - tapBackgroundToDismiss: A Boolean to indicate if the tapping the background should dismiss the full screen content. Default value is `true`.
+        ///   - onDismiss: The closure to execute when dismissing the modal view.
+        ///   - content: The closure to execute when dismissing the modal view.
         func presentFullScreen<Content>(
             isPresented: Binding<Bool>,
             dimmed: Bool = true,
@@ -152,7 +167,7 @@ public extension View {
             self.internalIsPresented = isPresented.wrappedValue
         }
 
-        let animationTime: TimeInterval = 1
+        let animationTime: TimeInterval = 0.15
 
         var body: some View {
             // FIXME: Not sure why it needs to be nested in a ZStack to work, but it won't work unless it's nested in another view
@@ -179,14 +194,16 @@ public extension View {
                         onDismiss: onDismiss
                     ) {
                         ZStack {
-                            Color.black
-                                .opacity(dimmed ? 0.5 : 0)
-                                .ignoresSafeArea()
-                                .onTapGesture {
-                                    if tapBackgroundToDismiss {
-                                        isPresented = false
+                            if dimmed || tapBackgroundToDismiss {
+                                Color.black
+                                    .opacity(dimmed ? 0.5 : 0)
+                                    .ignoresSafeArea()
+                                    .onTapGesture {
+                                        if tapBackgroundToDismiss {
+                                            isPresented = false
+                                        }
                                     }
-                                }
+                            }
 
                             presentedContent
                         }
