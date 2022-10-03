@@ -26,75 +26,59 @@
 
 import SwiftUI
 
-// TODO: Provide better documentation
-/// A view that can reads the geometry of the view provided and provides it to the parent.
+let DEBUG_LAYOUT_ChildSizeReader = false
+
+/// A view that can reads the size of the view provided and provides it to the parent.
 ///
 /// Adapted from [Wil Gieseler's](https://stackoverflow.com/users/813265/wil-gieseler) [answer on StackOverflow](https://stackoverflow.com/a/60861575/898984).
-public struct CUIChildGeometryReader<Content: View, ID: Hashable>: View {
-    // TODO: Document
-    public struct Proxy {
-        let proxy: GeometryProxy
-
-        internal init(proxy: GeometryProxy) {
-            self.proxy = proxy
-        }
-
-        public var size: CGSize {
-            proxy.size
-        }
-
-        public var safeAreaInsets: EdgeInsets {
-            proxy.safeAreaInsets
-        }
-
-        public func frame(in coordinateSpace: CoordinateSpace) -> CGRect {
-            proxy.frame(in: coordinateSpace)
-        }
-    }
-
-    @State
-    var proxy: Proxy? = nil
+public struct CUISizeReader<Content: View, ID: Hashable>: View {
+    @Binding var size: CGSize
     let id: ID
-    let content: (Proxy?) -> Content
+    let content: Content
 
     /// Creates a size reader for the view provided.
     /// - Parameters:
-    ///   - proxy: Will be set to the size of the view provided.
+    ///   - size: Will be set to the size of the view provided.
     ///   - id: Used to separate values if there are multiple size readers coexisting.
     ///   - content: The view to get the size of.
     public init(
+        size: Binding<CGSize>,
         id: ID,
-        @ViewBuilder content: @escaping (Proxy?) -> Content
+        @ViewBuilder content:  () -> Content
     ) {
+        _size = size
         self.id = id
-        self.content = content
+        self.content = content()
     }
 
     public var body: some View {
-        content(proxy)
+        content
             .background(
                 GeometryReader { proxy in
                     Color.clear
-                        .preference(
-                            key: GeometryPreferenceKey.self,
-                            value: [id: proxy]
-                        )
+                        .preference(key: SizePreferenceKey.self,
+                                    value: [id: {
+                                        if DEBUG_LAYOUT_ChildSizeReader {
+                                            print("proxy.size=\(proxy.size)")
+                                        }
+                                        return proxy.size
+                                    }()])
                 }
             )
-            .onPreferenceChange(GeometryPreferenceKey<ID>.self) { preferences in
-                guard let proxy = preferences[id] else {
-                    // TODO: Add warning
+            .onPreferenceChange(SizePreferenceKey<ID>.self) { preferences in
+                self.size = preferences[id] ?? .zero
 
-                    return
+                if DEBUG_LAYOUT_ChildSizeReader {
+                    print("onPreferenceChange self.size=\(self.size), id=\(id) preferences=\(preferences)")
                 }
-
-                self.proxy = Proxy(proxy: proxy)
             }
     }
+
+
 }
 
-fileprivate struct GeometryPreferenceKey<ID: Hashable>: PreferenceKey {
-    typealias Value = [ID: GeometryProxy]
+fileprivate struct SizePreferenceKey<ID: Hashable>: PreferenceKey {
+    typealias Value = [ID: CGSize]
     static var defaultValue: Value { Value() }
 
     static func reduce(value: inout Value, nextValue: () -> Value) {
@@ -102,6 +86,10 @@ fileprivate struct GeometryPreferenceKey<ID: Hashable>: PreferenceKey {
 
         for (key, size) in newValue {
             value[key] = size
+        }
+
+        if DEBUG_LAYOUT_ChildSizeReader {
+            print("reduce newValue=\(newValue), value=\(value)")
         }
     }
 }
