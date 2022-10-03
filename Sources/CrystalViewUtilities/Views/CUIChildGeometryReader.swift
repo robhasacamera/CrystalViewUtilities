@@ -93,20 +93,3 @@ fileprivate struct GeometryPreferenceKey<ID: Hashable>: PreferenceKey {
         }
     }
 }
-
-fileprivate struct SizePreferenceKey<ID: Hashable>: PreferenceKey {
-    typealias Value = [ID: CGSize]
-    static var defaultValue: Value { Value() }
-
-    static func reduce(value: inout Value, nextValue: () -> Value) {
-        let newValue = nextValue()
-
-        for (key, size) in newValue {
-            value[key] = size
-        }
-
-        if DEBUG_LAYOUT_ChildSizeReader {
-            print("reduce newValue=\(newValue), value=\(value)")
-        }
-    }
-}
