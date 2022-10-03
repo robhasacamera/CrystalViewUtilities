@@ -31,8 +31,9 @@ let DEBUG_LAYOUT_ChildSizeReader = false
 /// A view that can reads the size of the view provided and provides it to the parent.
 ///
 /// Adapted from [Wil Gieseler's](https://stackoverflow.com/users/813265/wil-gieseler) [answer on StackOverflow](https://stackoverflow.com/a/60861575/898984).
-public struct CUISizeReader<Content: View, ID: Hashable>: View {
-    @Binding var size: CGSize
+public struct CUIChildGeometryReader<Content: View, ID: Hashable>: View {
+    @Binding
+    var proxy: GeometryProxy
     let id: ID
     let content: Content
 
@@ -42,11 +43,11 @@ public struct CUISizeReader<Content: View, ID: Hashable>: View {
     ///   - id: Used to separate values if there are multiple size readers coexisting.
     ///   - content: The view to get the size of.
     public init(
-        size: Binding<CGSize>,
+        proxy: Binding<GeometryProxy>,
         id: ID,
         @ViewBuilder content:  () -> Content
     ) {
-        _size = size
+        _proxy = proxy
         self.id = id
         self.content = content()
     }
@@ -56,25 +57,41 @@ public struct CUISizeReader<Content: View, ID: Hashable>: View {
             .background(
                 GeometryReader { proxy in
                     Color.clear
-                        .preference(key: SizePreferenceKey.self,
-                                    value: [id: {
-                                        if DEBUG_LAYOUT_ChildSizeReader {
-                                            print("proxy.size=\(proxy.size)")
-                                        }
-                                        return proxy.size
-                                    }()])
+                        .preference(key: GeometryPreferenceKey.self, value: [id: {
+                            if DEBUG_LAYOUT_ChildSizeReader {
+                                print("proxy=\(proxy)")
+                            }
+                            return proxy
+                        }()])
                 }
             )
-            .onPreferenceChange(SizePreferenceKey<ID>.self) { preferences in
-                self.size = preferences[id] ?? .zero
+            .onPreferenceChange(GeometryPreferenceKey<ID>.self) { preferences in
+                guard let proxy = preferences[id] else {
+                    // TODO: Add warning
 
-                if DEBUG_LAYOUT_ChildSizeReader {
-                    print("onPreferenceChange self.size=\(self.size), id=\(id) preferences=\(preferences)")
+                    return
                 }
+
+                self.proxy = proxy
             }
     }
+}
 
+fileprivate struct GeometryPreferenceKey<ID: Hashable>: PreferenceKey {
+    typealias Value = [ID: GeometryProxy]
+    static var defaultValue: Value { Value() }
 
+    static func reduce(value: inout Value, nextValue: () -> Value) {
+        let newValue = nextValue()
+
+        for (key, size) in newValue {
+            value[key] = size
+        }
+
+        if DEBUG_LAYOUT_ChildSizeReader {
+            print("reduce newValue=\(newValue), value=\(value)")
+        }
+    }
 }
 
 fileprivate struct SizePreferenceKey<ID: Hashable>: PreferenceKey {
