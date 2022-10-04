@@ -11,7 +11,7 @@ CrystalViewUtilities supports Swift Package Manager. To use it the following to 
 
 ```
 dependencies: [
-    .package(name: "CrystalViewUtilities", url: "https://github.com/robhasacamera/CrystalViewUtilities.git", from: "0.3.1")
+    .package(name: "CrystalViewUtilities", url: "https://github.com/robhasacamera/CrystalViewUtilities.git", from: "0.4.0")
 ],
 ```
 
