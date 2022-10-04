@@ -24,25 +24,34 @@
 // SOFTWARE.
 //
 
-#if os(iOS)
+import SwiftUI
 
-import UIKit
-
-public extension UIScreen{
-    /// The width of the main screen.
-    static var width: CGFloat {
-        UIScreen.main.bounds.size.width
-    }
-
-    /// The height of the main screen.
-    static var height: CGFloat {
-        UIScreen.main.bounds.size.height
-    }
-
-    /// The size of the main screen.
-    static var size: CGSize {
-        UIScreen.main.bounds.size
+public extension Alignment {
+    /// Returns and inverted version of the alignment
+    ///
+    /// As an example, if the alignment is ``topLeading``,
+    /// calling inverted would return ``bottomTrailing``.
+    /// Calling inverted on ``center`` has no effect.
+    var inverted: Alignment {
+        switch self {
+        case .topLeading:
+            return .bottomTrailing
+        case .top:
+            return .bottom
+        case .topTrailing:
+            return .bottomLeading
+        case .leading:
+            return .trailing
+        case .center:
+            return .center
+        case .bottomLeading:
+            return .topTrailing
+        case .bottom:
+            return .top
+        case .bottomTrailing:
+            return .topLeading
+        default:
+            return .center
+        }
     }
 }
-
-#endif
