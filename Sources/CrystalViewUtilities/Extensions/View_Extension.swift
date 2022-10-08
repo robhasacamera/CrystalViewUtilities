@@ -73,13 +73,34 @@ public extension View {
         }
     }
 
+    /// Masks this view using the inverse alpha channel of a given view.
+    ///
+    /// Adapted from https://www.fivestars.blog/articles/reverse-masks-how-to/
+    /// - Parameters:
+    ///     - alignment: The alignment for `mask` in relation to this view.
+    ///     - mask: The view whose alpha the rendering system inversely applies to
+    ///       the specified view.
+    func reverseMask<Mask: View>(
+        alignment: Alignment = .center,
+        @ViewBuilder _ mask: () -> Mask
+    ) -> some View {
+        self.mask {
+            Rectangle()
+                .ignoresSafeArea()
+                .overlay(alignment: alignment) {
+                    mask()
+                        .blendMode(.destinationOut)
+                }
+        }
+    }
+
     #if os(iOS)
         /// Embed the view inside a hosting controller.
         var asHostingController: UIViewController {
             return UIHostingController(rootView: self)
         }
 
-        // TODO: Document
+        // TODO: Could possibly use this to make a absolute position modifier
         /// Presents a Full Screen Cover, without the usual slide up animation.
         ///
         /// Refer to `fullScreenCover(isPresented:onDismiss:content:)` for
@@ -102,15 +123,13 @@ public extension View {
             )
         }
 
-        // TODO: Consider adding a convienance method for presenting a window that takes only content. There can be a closure that passes in a CUIStylizedWindow and returns some CUIStylizedWindow so it can be fully customized.
-        // TODO: Document
         /// Presents a view fullscreen, optionally dimming the background.
         ///
         /// This also provides an dismissal by tapping on any any area not covered by the content, i.e. the background. When this option is enabled, tap to dismiss will occur whether or not the dimmed option is used. If the entire space of the screen is taken up, there will be no background available to tap on.
         /// - Parameters:
         ///   - isPresented: A binding to a Boolean value that determines whether to present the provided content.
         ///   - dimmed: A Boolean that indicates whether the background should be dimmed with a transparent color. Default value is `true`.
-        ///   - tapBackgroundToDismiss: A Boolean to indicate if the tapping the background should dismiss the full screen content. Default value is `true`.
+        ///   - tapBackgroundToDismiss: A Boolean to indicate if the tapping the background should dismiss the full screen content. Default value is `true`. If this is set to `false`, you will still not be able to interact with the views behind the presented fullscreen view.
         ///   - onDismiss: The closure to execute when dismissing the modal view.
         ///   - content: The closure to execute when dismissing the modal view.
         func presentFullScreen<Content>(
@@ -163,61 +182,55 @@ public extension View {
             self.presentedContent = presentedContent
             self.dimmed = dimmed
             self.tapBackgroundToDismiss = tapBackgroundToDismiss
-            self._alpha = State(initialValue: (dimmed ? 0 : 1) as CGFloat)
+            self._alpha = State(initialValue: 0 as CGFloat)
             self.internalIsPresented = isPresented.wrappedValue
         }
 
         let animationTime: TimeInterval = 0.15
 
         var body: some View {
-            // FIXME: Not sure why it needs to be nested in a ZStack to work, but it won't work unless it's nested in another view
-            ZStack {
-                originalContent
-                    .onChange(of: isPresented, perform: { _ in
-                        if dimmed, alpha > 0 {
-                            withAnimation(.linear(duration: animationTime)) {
-                                alpha = 0.0
-                            }
-                            DispatchQueue.main.asyncAfter(deadline: .now() + animationTime) {
-                                withoutAnimation {
-                                    internalIsPresented.toggle()
-                                }
-                            }
-                        } else {
+            originalContent
+                .onChange(of: isPresented, perform: { _ in
+                    if alpha > 0 {
+                        withAnimation(.linear(duration: animationTime)) {
+                            alpha = 0.0
+                        }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + animationTime) {
                             withoutAnimation {
                                 internalIsPresented.toggle()
                             }
                         }
-                    })
-                    .fullScreenCover(
-                        isPresented: $internalIsPresented,
-                        onDismiss: onDismiss
-                    ) {
-                        ZStack {
-                            if dimmed || tapBackgroundToDismiss {
-                                Color.black
-                                    .opacity(dimmed ? 0.5 : 0)
-                                    .ignoresSafeArea()
-                                    .onTapGesture {
-                                        if tapBackgroundToDismiss {
-                                            isPresented = false
-                                        }
-                                    }
-                            }
-
-                            presentedContent
-                        }
-                        .opacity(alpha)
-                        .background(TransparentBackground())
-                        .onAppear {
-                            if dimmed {
-                                withAnimation(.linear(duration: animationTime)) {
-                                    alpha = 1
-                                }
-                            }
+                    } else {
+                        withoutAnimation {
+                            internalIsPresented.toggle()
                         }
                     }
-            }
+                })
+                .fullScreenCover(
+                    isPresented: $internalIsPresented,
+                    onDismiss: onDismiss
+                ) {
+                    ZStack {
+                        // If this isn't always present, it causes some animation issues. When presenting the dimmed background won't fade in and when dismissing it'll slide the bottomsheet away
+                        Color.black
+                            .opacity(dimmed ? 0.5 : 0.01)
+                            .ignoresSafeArea()
+                            .onTapGesture {
+                                if tapBackgroundToDismiss {
+                                    isPresented = false
+                                }
+                            }
+
+                        presentedContent
+                    }
+                    .opacity(alpha)
+                    .background(TransparentBackground())
+                    .onAppear {
+                        withAnimation(.linear(duration: animationTime)) {
+                            alpha = 1
+                        }
+                    }
+                }
         }
     }
 
@@ -275,19 +288,118 @@ public extension View {
                         showFullScreen.toggle()
                     }
                     .presentFullScreen(isPresented: $showFullScreen) {
-                        ZStack {
-                            Circle().foregroundColor(.gray)
-                            Button("showFullScreen=\(showFullScreen ? "true" : "false")") {
-                                showFullScreen.toggle()
+                        Button("hide fullscreen") {
+                            showFullScreen.toggle()
+                        }
+                        .padding(.standardSpacing)
+                        .background(.gray)
+                    }
+                }
+                .ignoresSafeArea()
+            }
+        }
+
+        static var previews: some View {
+            Preview()
+//                .previewInterfaceOrientation(.landscapeLeft)
+        }
+    }
+
+    struct PreviewNoDimming_Previews: PreviewProvider {
+        struct Preview: View {
+            let size: CGFloat = 100
+
+            @State
+            var presented = false
+            @State
+            var presented0 = false
+            @State
+            var presented1 = false
+
+            var body: some View {
+                VStack {
+                    HStack {
+                        Button {
+                            presented.toggle()
+                        } label: {
+                            Circle().foregroundColor(.yellow)
+                        }
+                        .presentToolTip(isPresented: $presented) {
+                            Button("dismiss") {
+                                presented.toggle()
                             }
+                            .padding()
+                            .background(.gray)
+                        }
+
+                        Button {
+                            presented.toggle()
+                        } label: {
+                            Circle().foregroundColor(.yellow)
+                        }
+                        .presentToolTip(isPresented: $presented) {
+                            Button("dismiss") {
+                                presented.toggle()
+                            }
+                            .padding()
+                            .background(.gray)
                         }
                     }
+
+                    HStack {
+                        Button {
+                            presented0.toggle()
+                        } label: {
+                            Circle().foregroundColor(.yellow)
+                        }
+                        .presentToolTip(isPresented: $presented0) {
+                            Button("dismiss") {
+                                presented0.toggle()
+                            }
+                            .padding()
+                            .background(.gray)
+                        }
+
+                        Button {
+                            presented1.toggle()
+                        } label: {
+                            Circle().foregroundColor(.yellow)
+                        }
+                        .presentToolTip(isPresented: $presented1) {
+                            Button("dismiss") {
+                                presented1.toggle()
+                            }
+                            .padding()
+                            .background(.gray)
+                        }
+                    }
+//                    .ignoresSafeArea()
                 }
             }
         }
 
         static var previews: some View {
             Preview()
+//                .previewInterfaceOrientation(.landscapeLeft)
+        }
+    }
+
+    extension View {
+        func presentToolTip<Content>(
+            isPresented: Binding<Bool>,
+            presentationEdge: Edge? = nil,
+            dimmed: Bool = true,
+            tapBackgroundToDismiss: Bool = true,
+            onDismiss: (() -> Void)? = nil,
+            @ViewBuilder content: @escaping () -> Content
+        ) -> some View where Content: View {
+            // TODO: Need to document the difference between this and a regular goemtry reader. I think it's that a regular geomtry reader provides the geometry for a parent while this one provides geometry for the child inside of it. So it can use it's own geometry on itself.
+            presentFullScreen(
+                isPresented: isPresented,
+                dimmed: false
+            ) {
+                content()
+            }
         }
     }
 #endif
