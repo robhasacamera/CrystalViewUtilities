@@ -73,9 +73,6 @@ public extension View {
         }
     }
 
-    //
-    // TODO: Move to view utilities
-
     /// Masks this view using the inverse alpha channel of a given view.
     ///
     /// Adapted from https://www.fivestars.blog/articles/reverse-masks-how-to/
@@ -103,7 +100,7 @@ public extension View {
             return UIHostingController(rootView: self)
         }
 
-        // TODO: Document
+        // TODO: Could possibly use this to make a absolute position modifier
         /// Presents a Full Screen Cover, without the usual slide up animation.
         ///
         /// Refer to `fullScreenCover(isPresented:onDismiss:content:)` for
@@ -126,8 +123,6 @@ public extension View {
             )
         }
 
-        // TODO: Consider adding a convienance method for presenting a window that takes only content. There can be a closure that passes in a CUIStylizedWindow and returns some CUIStylizedWindow so it can be fully customized.
-        // TODO: Document
         /// Presents a view fullscreen, optionally dimming the background.
         ///
         /// This also provides an dismissal by tapping on any any area not covered by the content, i.e. the background. When this option is enabled, tap to dismiss will occur whether or not the dimmed option is used. If the entire space of the screen is taken up, there will be no background available to tap on.
