@@ -29,12 +29,12 @@ import SwiftUI
 // FIXME: Have not found a way to select macOS 12.6 for CI. Will address in future release
 #if os(iOS)
 /**
- * Created a layout that flows from one row to the next.
+ * Creates a layout that flows from one row to the next.
  *
  * Rows are sized to fit as many elements as possible horizontally before wrapping to the next line.
  * Rows will be as tall as their tallest element and elements are centered aligned in the row.
  */
-@available(iOS 16, macOS 12.6, *)
+@available(iOS 16, *)
 public struct CUIFlowLayout: Layout {
     let horizontalSpacing: CGFloat
     let verticalSpacing: CGFloat
