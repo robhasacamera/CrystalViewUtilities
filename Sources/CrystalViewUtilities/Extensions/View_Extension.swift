@@ -109,7 +109,7 @@ public extension View {
         /// - Parameters:
         ///   - isPresented: A binding to a Boolean value that determines whether to present the sheet.
         ///   - onDismiss: The closure to execute when dismissing the modal view.
-        ///   - content: The closure to execute when dismissing the modal view.
+        ///   - content: The content to display fullscreen.
         func fullScreenCoverWithoutAnimation<Content>(
             isPresented: Binding<Bool>,
             onDismiss: (() -> Void)? = nil,
@@ -129,9 +129,9 @@ public extension View {
         /// - Parameters:
         ///   - isPresented: A binding to a Boolean value that determines whether to present the provided content.
         ///   - dimmed: A Boolean that indicates whether the background should be dimmed with a transparent color. Default value is `true`.
-        ///   - tapBackgroundToDismiss: A Boolean to indicate if the tapping the background should dismiss the full screen content. Default value is `true`. If this is set to `false`, you will still not be able to interact with the views behind the presented fullscreen view.
+        ///   - tapBackgroundToDismiss: A Boolean to indicate if the tapping the background should dismiss the full screen content. Default value is `true`. If this is set to `false`, you will still not be able to interact with the views behind the presented fullscreen view, even when fully visible.
         ///   - onDismiss: The closure to execute when dismissing the modal view.
-        ///   - content: The closure to execute when dismissing the modal view.
+        ///   - content: The content to display fullscreen.
         func presentFullScreen<Content>(
             isPresented: Binding<Bool>,
             dimmed: Bool = true,

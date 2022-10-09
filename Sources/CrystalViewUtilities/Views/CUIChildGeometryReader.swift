@@ -26,8 +26,9 @@
 
 import SwiftUI
 
-// TODO: Provide better documentation
 /// A view that can reads the geometry of the view provided and provides it to the parent.
+///
+/// This is different from SwiftUI's `GeometryReader` as it provides the geometry for the child instead of geometry for the parent.
 ///
 /// Adapted from [Wil Gieseler's](https://stackoverflow.com/users/813265/wil-gieseler) [answer on StackOverflow](https://stackoverflow.com/a/60861575/898984).
 public struct CUIChildGeometryReader<Content: View, ID: Hashable>: View {
@@ -59,9 +60,8 @@ public struct CUIChildGeometryReader<Content: View, ID: Hashable>: View {
 
     /// Creates a size reader for the view provided.
     /// - Parameters:
-    ///   - proxy: Will be set to the size of the view provided.
     ///   - id: Used to separate values if there are multiple size readers coexisting.
-    ///   - content: The view to get the size of.
+    ///   - content: The view to get the geometry for. The proxy provided will provide geometry for this view. Caution should be used when using the child's geometry to size the child, as it is easy to create an infinite loop.
     public init(
         id: ID,
         @ViewBuilder content: @escaping (Proxy?) -> Content
