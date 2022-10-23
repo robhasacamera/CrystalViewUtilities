@@ -58,10 +58,12 @@ public struct CUIChildGeometryReader<Content: View, ID: Hashable>: View {
     let id: ID
     let content: (Proxy?) -> Content
 
-    /// Creates a size reader for the view provided.
+    /// Creates a GeometryReader reader for the view provided.
+    ///
+    /// The proxy provided will provide geometry for the child view. Caution should be used when using the child's geometry to size the child, as it is easy to create an infinite loop.
     /// - Parameters:
     ///   - id: Used to separate values if there are multiple size readers coexisting.
-    ///   - content: The view to get the geometry for. The proxy provided will provide geometry for this view. Caution should be used when using the child's geometry to size the child, as it is easy to create an infinite loop.
+    ///   - content: The view to get the geometry for.
     public init(
         id: ID,
         @ViewBuilder content: @escaping (Proxy?) -> Content
