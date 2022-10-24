@@ -31,4 +31,5 @@ This package is a base for Crystal UI. It provides several utility views and ext
 - ``CUISizeReader/asHostingController``
 - ``CUISizeReader/withoutAnimation(action:)``
 - ``CUISizeReader/reverseMask(alignment:_:)``
+- ``CUISizeReader/cornerRadius(_:corners:)``
 
