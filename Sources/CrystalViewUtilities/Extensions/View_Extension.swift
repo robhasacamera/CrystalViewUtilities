@@ -101,7 +101,7 @@ public extension View {
     ///   - radius: The radius to use to round the corners. Default is `.infinity`.
     ///   - corners: The corners to round. Default is ``CUIRoundedCornerShape/Corner/allCorners``.
     func cornerRadius(
-        _ radius: CGFloat = .infinity,
+        _ radius: CGFloat = .cornerRadius,
         corners: CUIRoundedCornerShape.Corner = .allCorners
     ) -> some View {
         self.clipShape(

@@ -38,7 +38,7 @@ public struct CUIRoundedCornerShape: Shape {
     ///   - radius: The radius to apply to the corners.
     ///   - corners: The corners to round.
     public init(
-        radius: CGFloat = .infinity,
+        radius: CGFloat = .cornerRadius,
         corners: Corner = .allCorners
     ) {
         self.radius = radius
@@ -47,10 +47,10 @@ public struct CUIRoundedCornerShape: Shape {
 
     public func path(in rect: CGRect) -> Path {
         Path(
-            UIBezierPath(
-                roundedRect: rect,
-                byRoundingCorners: corners.rectCorner,
-                cornerRadii: CGSize(width: radius, height: radius)
+            BezierPath(
+                rect: rect,
+                roundedCorners: corners.bezierCorner,
+                cornerRadius: radius
             ).cgPath
         )
     }
@@ -72,7 +72,7 @@ public struct CUIRoundedCornerShape: Shape {
         public static let bottomTrailing = Corner(rawValue: 1 << 3)
         public static let allCorners: Corner = [topLeading, topTrailing, bottomLeading, bottomTrailing]
 
-
+        #if os(iOS)
         /// Translates the leading/trailing to left/right depending on the current layout direction.
         public var rectCorner: UIRectCorner {
             let isRTL = direction == .rightToLeft
@@ -97,6 +97,31 @@ public struct CUIRoundedCornerShape: Shape {
 
             return rectCorners
         }
+        #endif
+
+        var bezierCorner: BezierCorner {
+            let isRTL = direction == .rightToLeft
+
+            var bezierCorners: BezierCorner = []
+
+            if self.contains(.topLeading) {
+                bezierCorners.insert(isRTL ? .topRight : .topLeft)
+            }
+
+            if self.contains(.topTrailing) {
+                bezierCorners.insert(isRTL ? .topLeft : .topRight)
+            }
+
+            if self.contains(.bottomLeading) {
+                bezierCorners.insert(isRTL ? .bottomRight : .bottomLeft)
+            }
+
+            if self.contains(.bottomTrailing) {
+                bezierCorners.insert(isRTL ? .bottomLeft : .bottomRight)
+            }
+
+            return bezierCorners
+        }
     }
 }
 
@@ -104,18 +129,40 @@ struct CUIRoundedCornerShape_Previews: PreviewProvider {
     static var previews: some View {
         VStack {
             CUIRoundedCornerShape(radius: 30, corners: .topLeading)
+                .foregroundColor(.yellow)
 
             CUIRoundedCornerShape(radius: 30, corners: .topTrailing)
+                .foregroundColor(.yellow)
 
             CUIRoundedCornerShape(radius: 30, corners: .bottomLeading)
+                .foregroundColor(.yellow)
 
             CUIRoundedCornerShape(radius: 30, corners: .bottomTrailing)
+                .foregroundColor(.yellow)
 
             CUIRoundedCornerShape(radius: 30, corners: [.topLeading, .topTrailing])
+                .foregroundColor(.yellow)
 
             CUIRoundedCornerShape(radius: 30, corners: [.topLeading, .bottomTrailing])
+                .foregroundColor(.yellow)
 
-            CUIRoundedCornerShape()
+            HStack {
+                CUIRoundedCornerShape(radius: 30)
+                    .foregroundColor(.yellow)
+                    .frame(width:60, height: 60)
+
+                CUIRoundedCornerShape(radius: 25)
+                    .foregroundColor(.yellow)
+                    .frame(width:50, height: 50)
+
+                CUIRoundedCornerShape(radius: 20)
+                    .foregroundColor(.yellow)
+                    .overlay(alignment: .top, content: {
+                        Rectangle().frame(width: 10, height: 20)
+                    })
+                    .frame(width:50, height: 50)
+
+            }
         }
     }
 }
