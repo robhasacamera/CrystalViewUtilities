@@ -95,6 +95,8 @@ public extension View {
     }
 
     /// Rounds the provided corners of the view.
+    ///
+    /// This was adapted from [Mojtaba Hosseini](https://stackoverflow.com/users/5623035/mojtaba-hosseini)'s [answer on Stack Overflow](https://stackoverflow.com/a/58606176/898984).
     /// - Parameters:
     ///   - radius: The radius to use to round the corners. Default is `.infinity`.
     ///   - corners: The corners to round. Default is ``CUIRoundedCornerShape/Corner/allCorners``.
