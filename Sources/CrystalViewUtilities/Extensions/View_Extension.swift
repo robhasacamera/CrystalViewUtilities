@@ -77,7 +77,7 @@ public extension View {
     ///
     /// Adapted from https://www.fivestars.blog/articles/reverse-masks-how-to/
     /// - Parameters:
-    ///     - alignment: The alignment for `mask` in relation to this view.
+    ///     - alignment: The alignment for `mask` in relation to this view. Default is `.center`.
     ///     - mask: The view whose alpha the rendering system inversely applies to
     ///       the specified view.
     func reverseMask<Mask: View>(
@@ -92,6 +92,24 @@ public extension View {
                         .blendMode(.destinationOut)
                 }
         }
+    }
+
+    /// Rounds the provided corners of the view.
+    ///
+    /// This was adapted from [Mojtaba Hosseini](https://stackoverflow.com/users/5623035/mojtaba-hosseini)'s [answer on Stack Overflow](https://stackoverflow.com/a/58606176/898984).
+    /// - Parameters:
+    ///   - radius: The radius to use to round the corners. Default is `.infinity`.
+    ///   - corners: The corners to round. Default is ``CUIRoundedCornerShape/Corner/allCorners``.
+    func cornerRadius(
+        _ radius: CGFloat = .cornerRadius,
+        corners: CUIRoundedCornerShape.Corner = .allCorners
+    ) -> some View {
+        self.clipShape(
+            CUIRoundedCornerShape(
+                radius: radius,
+                corners: corners
+            )
+        )
     }
 
     #if os(iOS)
@@ -394,7 +412,7 @@ public extension View {
             @ViewBuilder content: @escaping () -> Content
         ) -> some View where Content: View {
             // TODO: Need to document the difference between this and a regular goemtry reader. I think it's that a regular geomtry reader provides the geometry for a parent while this one provides geometry for the child inside of it. So it can use it's own geometry on itself.
-            presentFullScreen(
+            self.presentFullScreen(
                 isPresented: isPresented,
                 dimmed: false
             ) {
