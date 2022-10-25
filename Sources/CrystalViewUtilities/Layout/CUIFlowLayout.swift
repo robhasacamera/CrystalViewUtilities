@@ -127,7 +127,6 @@ public struct CUIFlowLayout: Layout {
         return (rowsOrColumns: rowsOrColumns, length: length)
     }
 
-    // TODO: Handle vertical layouts as well
     public func sizeThatFits(
         proposal: ProposedViewSize,
         subviews: Subviews,
@@ -137,11 +136,15 @@ public struct CUIFlowLayout: Layout {
 
         var heightOrWidth: CGFloat = 0
 
-        for row in rowsOrColumns {
-            let rowHeightOrWidth = row.maxHeight(in: proposal)
+        for rowOrColumn in rowsOrColumns {
+            let rowHeightOrWidth = axis == .horizontal
+                ? rowOrColumn.maxHeight(in: proposal)
+                : rowOrColumn.maxWidth(in: proposal)
 
             if heightOrWidth > 0 {
-                heightOrWidth += verticalSpacing
+                heightOrWidth += axis == .horizontal
+                    ? verticalSpacing
+                    : horizontalSpacing
             }
 
             heightOrWidth += rowHeightOrWidth
@@ -155,8 +158,8 @@ public struct CUIFlowLayout: Layout {
             width = length
             height = heightOrWidth
         case .vertical:
-            height = length
             width = heightOrWidth
+            height = length
         }
 
         return CGSize(width: width, height: height)
