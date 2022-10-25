@@ -56,10 +56,10 @@ public struct CUIFlowLayout: Layout {
         self.verticalSpacing = verticalSpacing
     }
 
-    func rowsOrColumns(
+    func subviewGroup(
         subviews: Subviews,
         proposal: ProposedViewSize
-    ) -> (rowsOrColumns: [[LayoutSubview]], length: CGFloat) {
+    ) -> (subviewGroup: [[LayoutSubview]], length: CGFloat) {
         var maxLength: CGFloat = 0
 
         // For special cases, it'll place one item per row.
@@ -79,7 +79,7 @@ public struct CUIFlowLayout: Layout {
             }
         }
 
-        var rowsOrColumns: [[LayoutSubview]] = []
+        var subviewGroup: [[LayoutSubview]] = []
 
         var length: CGFloat = 0
         var currentLength: CGFloat = 0
@@ -91,10 +91,10 @@ public struct CUIFlowLayout: Layout {
 
             // This will be true for the first run as well.
             if currentLength == 0 {
-                rowsOrColumns.append([])
+                subviewGroup.append([])
             }
 
-            guard var currentRowOrColumn = rowsOrColumns.last else {
+            guard var currentGroup = subviewGroup.last else {
                 // This should never happen
                 break
             }
@@ -112,11 +112,11 @@ public struct CUIFlowLayout: Layout {
             currentLength += subviewLength
 
             if currentLength > maxLength {
-                rowsOrColumns.append([subview])
+                subviewGroup.append([subview])
                 currentLength = subviewLength
             } else {
-                currentRowOrColumn.append(subview)
-                rowsOrColumns[rowsOrColumns.count - 1] = currentRowOrColumn
+                currentGroup.append(subview)
+                subviewGroup[subviewGroup.count - 1] = currentGroup
             }
 
             if currentLength > length {
@@ -124,22 +124,23 @@ public struct CUIFlowLayout: Layout {
             }
         }
 
-        return (rowsOrColumns: rowsOrColumns, length: length)
+        return (subviewGroup: subviewGroup, length: length)
     }
 
+    // FIXME: Have different names besides length and widthOrHeight
     public func sizeThatFits(
         proposal: ProposedViewSize,
         subviews: Subviews,
         cache: inout ()
     ) -> CGSize {
-        let (rowsOrColumns, length) = rowsOrColumns(subviews: subviews, proposal: proposal)
+        let (subviewGroup, length) = subviewGroup(subviews: subviews, proposal: proposal)
 
         var heightOrWidth: CGFloat = 0
 
-        for rowOrColumn in rowsOrColumns {
-            let rowHeightOrWidth = axis == .horizontal
-                ? rowOrColumn.maxHeight(in: proposal)
-                : rowOrColumn.maxWidth(in: proposal)
+        for subview in subviewGroup {
+            let subviewHeightOrWidth = axis == .horizontal
+                ? subview.maxHeight(in: proposal)
+                : subview.maxWidth(in: proposal)
 
             if heightOrWidth > 0 {
                 heightOrWidth += axis == .horizontal
@@ -147,7 +148,7 @@ public struct CUIFlowLayout: Layout {
                     : horizontalSpacing
             }
 
-            heightOrWidth += rowHeightOrWidth
+            heightOrWidth += subviewHeightOrWidth
         }
 
         let width: CGFloat
@@ -172,15 +173,15 @@ public struct CUIFlowLayout: Layout {
         subviews: Subviews,
         cache: inout ()
     ) {
-        let (rowsOrColumns, _) = rowsOrColumns(subviews: subviews, proposal: proposal)
+        let (subviewGroup, _) = subviewGroup(subviews: subviews, proposal: proposal)
 
         var y: CGFloat = 0
         var x: CGFloat = 0
 
-        for rowOrColumn in rowsOrColumns {
-            let rowOrColumnLength = axis == .horizontal
-                ? rowOrColumn.maxHeight(in: proposal)
-                : rowOrColumn.maxWidth(in: proposal)
+        for subview in subviewGroup {
+            let subviewLength = axis == .horizontal
+                ? subview.maxHeight(in: proposal)
+                : subview.maxWidth(in: proposal)
 
             switch axis {
             case .horizontal:
@@ -190,7 +191,7 @@ public struct CUIFlowLayout: Layout {
                     y += verticalSpacing
                 }
 
-                y += rowOrColumnLength / 2
+                y += subviewLength / 2
             case .vertical:
                 y = 0
 
@@ -198,10 +199,10 @@ public struct CUIFlowLayout: Layout {
                     x += horizontalSpacing
                 }
 
-                x += rowOrColumnLength / 2
+                x += subviewLength / 2
             }
 
-            for subview in rowOrColumn {
+            for subview in subview {
                 let subviewWidthOrHeight = axis == .horizontal ?
                     subview.dimensions(in: proposal).width :
                     subview.dimensions(in: proposal).height
@@ -230,10 +231,10 @@ public struct CUIFlowLayout: Layout {
                     proposal: ProposedViewSize(
                         width: axis == .horizontal
                             ? subviewWidthOrHeight :
-                            rowOrColumnLength,
+                            subviewLength,
                         height: axis == .vertical
                             ? subviewWidthOrHeight
-                            : rowOrColumnLength
+                            : subviewLength
                     )
                 )
 
@@ -247,9 +248,9 @@ public struct CUIFlowLayout: Layout {
 
             switch axis {
             case .horizontal:
-                y += rowOrColumnLength / 2
+                y += subviewLength / 2
             case .vertical:
-                x += rowOrColumnLength / 2
+                x += subviewLength / 2
             }
         }
     }
