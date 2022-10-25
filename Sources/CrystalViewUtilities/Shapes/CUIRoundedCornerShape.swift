@@ -161,7 +161,6 @@ struct CUIRoundedCornerShape_Previews: PreviewProvider {
                         Rectangle().frame(width: 10, height: 20)
                     })
                     .frame(width:50, height: 50)
-
             }
         }
     }
