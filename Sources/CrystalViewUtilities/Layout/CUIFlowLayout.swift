@@ -40,6 +40,10 @@ public struct CUIFlowLayout: Layout {
     let horizontalSpacing: CGFloat
     let verticalSpacing: CGFloat
 
+    var isHorizontal: Bool {
+        axis == .horizontal
+    }
+
     // TODO: Add alignment options for row (center, top, bottom)
     // TODO: Add alignment options for layout as a whole (leading, center, trailing), this will probably be much harder
     /// Creates a flow layout using the provided spacing.
@@ -59,8 +63,8 @@ public struct CUIFlowLayout: Layout {
     func subviewGroup(
         subviews: Subviews,
         proposal: ProposedViewSize
-    ) -> (subviewGroup: [[LayoutSubview]], length: CGFloat) {
-        var maxLength: CGFloat = 0
+    ) -> (subviewGroup: [[LayoutSubview]], groupAxisLength: CGFloat) {
+        var availableAxisLength: CGFloat = 0
 
         // For special cases, it'll place one item per row.
         if proposal != .zero,
@@ -70,27 +74,27 @@ public struct CUIFlowLayout: Layout {
             switch axis {
             case .horizontal:
                 if let width = proposal.width {
-                    maxLength = width
+                    availableAxisLength = width
                 }
             case .vertical:
                 if let height = proposal.height {
-                    maxLength = height
+                    availableAxisLength = height
                 }
             }
         }
 
         var subviewGroup: [[LayoutSubview]] = []
 
-        var length: CGFloat = 0
-        var currentLength: CGFloat = 0
+        var groupAxisLength: CGFloat = 0
+        var currentAxisLength: CGFloat = 0
 
         for subview in subviews {
-            if currentLength > maxLength {
-                currentLength = 0
+            if currentAxisLength > availableAxisLength {
+                currentAxisLength = 0
             }
 
             // This will be true for the first run as well.
-            if currentLength == 0 {
+            if currentAxisLength == 0 {
                 subviewGroup.append([])
             }
 
@@ -99,32 +103,32 @@ public struct CUIFlowLayout: Layout {
                 break
             }
 
-            if currentLength > 0 {
-                currentLength += axis == .horizontal
+            if currentAxisLength > 0 {
+                currentAxisLength += isHorizontal
                     ? horizontalSpacing
                     : verticalSpacing
             }
 
-            let subviewLength = axis == .horizontal
+            let subviewLength = isHorizontal
                 ? subview.dimensions(in: proposal).width
                 : subview.dimensions(in: proposal).height
 
-            currentLength += subviewLength
+            currentAxisLength += subviewLength
 
-            if currentLength > maxLength {
+            if currentAxisLength > availableAxisLength {
                 subviewGroup.append([subview])
-                currentLength = subviewLength
+                currentAxisLength = subviewLength
             } else {
                 currentGroup.append(subview)
                 subviewGroup[subviewGroup.count - 1] = currentGroup
             }
 
-            if currentLength > length {
-                length = currentLength
+            if currentAxisLength > groupAxisLength {
+                groupAxisLength = currentAxisLength
             }
         }
 
-        return (subviewGroup: subviewGroup, length: length)
+        return (subviewGroup: subviewGroup, groupAxisLength: groupAxisLength)
     }
 
     // FIXME: Have different names besides length and widthOrHeight
@@ -133,40 +137,39 @@ public struct CUIFlowLayout: Layout {
         subviews: Subviews,
         cache: inout ()
     ) -> CGSize {
-        let (subviewGroup, length) = subviewGroup(subviews: subviews, proposal: proposal)
+        let (subviewGroup, groupAxisLength) = subviewGroup(subviews: subviews, proposal: proposal)
 
-        var heightOrWidth: CGFloat = 0
+        var crossGroupLength: CGFloat = 0
 
         for subview in subviewGroup {
-            let subviewHeightOrWidth = axis == .horizontal
+            let subviewHeightOrWidth = isHorizontal
                 ? subview.maxHeight(in: proposal)
                 : subview.maxWidth(in: proposal)
 
-            if heightOrWidth > 0 {
-                heightOrWidth += axis == .horizontal
+            if crossGroupLength > 0 {
+                crossGroupLength += isHorizontal
                     ? verticalSpacing
                     : horizontalSpacing
             }
 
-            heightOrWidth += subviewHeightOrWidth
+            crossGroupLength += subviewHeightOrWidth
         }
 
-        let width: CGFloat
-        let height: CGFloat
-
-        switch axis {
-        case .horizontal:
-            width = length
-            height = heightOrWidth
-        case .vertical:
-            width = heightOrWidth
-            height = length
-        }
+        let width = isHorizontal
+            ? groupAxisLength
+            : crossGroupLength
+        let height = isHorizontal
+            ? crossGroupLength
+            : groupAxisLength
 
         return CGSize(width: width, height: height)
     }
 
     // This method needs to be refactored desparately after adding alternative axis.
+    // majorLength, minorLength
+    // length, crossLength
+    // axisLength, crossLength
+    // lengthAlongAxis, crossLength
     public func placeSubviews(
         in bounds: CGRect,
         proposal: ProposedViewSize,
@@ -175,83 +178,67 @@ public struct CUIFlowLayout: Layout {
     ) {
         let (subviewGroup, _) = subviewGroup(subviews: subviews, proposal: proposal)
 
-        var y: CGFloat = 0
-        var x: CGFloat = 0
+        var axisPosition: CGFloat = 0
+        var crossPosition: CGFloat = 0
 
         for subview in subviewGroup {
-            let subviewLength = axis == .horizontal
+            let crossLength = isHorizontal
                 ? subview.maxHeight(in: proposal)
                 : subview.maxWidth(in: proposal)
 
-            switch axis {
-            case .horizontal:
-                x = 0
+            axisPosition = 0
 
-                if y > 0 {
-                    y += verticalSpacing
-                }
-
-                y += subviewLength / 2
-            case .vertical:
-                y = 0
-
-                if x > 0 {
-                    x += horizontalSpacing
-                }
-
-                x += subviewLength / 2
+            if crossPosition > 0 {
+                crossPosition += isHorizontal
+                    ? verticalSpacing
+                    : horizontalSpacing
             }
 
+            crossPosition += crossLength / 2
+
             for subview in subview {
-                let subviewWidthOrHeight = axis == .horizontal ?
-                    subview.dimensions(in: proposal).width :
-                    subview.dimensions(in: proposal).height
+                let axisLength = isHorizontal
+                    ? subview.dimensions(in: proposal).width
+                    : subview.dimensions(in: proposal).height
 
-                switch axis {
-                case .horizontal:
-                    if x > 0 {
-                        x += horizontalSpacing
-                    }
-
-                    x += subviewWidthOrHeight / 2
-                case .vertical:
-                    if y > 0 {
-                        y += verticalSpacing
-                    }
-
-                    y += subviewWidthOrHeight / 2
+                if axisPosition > 0 {
+                    axisPosition += isHorizontal
+                        ? horizontalSpacing
+                        : verticalSpacing
                 }
+
+                axisPosition += axisLength / 2
 
                 subview.place(
                     at: CGPoint(
-                        x: x + bounds.origin.x,
-                        y: y + bounds.origin.y
+                        x: bounds.origin.x
+                            + (
+                                isHorizontal
+                                    ? axisPosition
+                                    : crossPosition
+                            ),
+                        y: bounds.origin.y
+                            + (
+                                isHorizontal
+                                    ? crossPosition
+                                    : axisPosition
+                            )
                     ),
                     anchor: .center,
                     proposal: ProposedViewSize(
-                        width: axis == .horizontal
-                            ? subviewWidthOrHeight :
-                            subviewLength,
-                        height: axis == .vertical
-                            ? subviewWidthOrHeight
-                            : subviewLength
+                        width: isHorizontal
+                            ? axisLength
+                            : crossLength,
+                        height: isHorizontal
+                            ? crossLength
+                            : axisLength
                     )
                 )
 
-                switch axis {
-                case .horizontal:
-                    x += subviewWidthOrHeight / 2
-                case .vertical:
-                    y += subviewWidthOrHeight / 2
-                }
+                axisPosition += axisLength / 2
             }
 
-            switch axis {
-            case .horizontal:
-                y += subviewLength / 2
-            case .vertical:
-                x += subviewLength / 2
-            }
+            crossPosition += crossLength / 2
         }
     }
 }
