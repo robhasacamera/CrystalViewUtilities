@@ -36,8 +36,13 @@ import SwiftUI
  */
 @available(iOS 16, *)
 public struct CUIFlowLayout: Layout {
+    let axis: Axis
     let horizontalSpacing: CGFloat
     let verticalSpacing: CGFloat
+
+    var isHorizontal: Bool {
+        axis == .horizontal
+    }
 
     // TODO: Add alignment options for row (center, top, bottom)
     // TODO: Add alignment options for layout as a whole (leading, center, trailing), this will probably be much harder
@@ -46,142 +51,194 @@ public struct CUIFlowLayout: Layout {
     ///   - horizontalSpacing: Spacing between elements in the row.
     ///   - verticalSpacing: Spacing between rows
     public init(
+        axis: Axis = .horizontal,
         horizontalSpacing: CGFloat = .standardSpacing,
         verticalSpacing: CGFloat = .standardSpacing
     ) {
+        self.axis = axis
         self.horizontalSpacing = horizontalSpacing
         self.verticalSpacing = verticalSpacing
     }
 
-    func rows(
+    func subviewGroup(
         subviews: Subviews,
         proposal: ProposedViewSize
-    ) -> (rows: [[LayoutSubview]], width: CGFloat) {
-        var maxWidth: CGFloat = 0
+    ) -> (subviewGroup: [[LayoutSubview]], groupAxisLength: CGFloat) {
+        var availableAxisLength: CGFloat = 0
 
         // For special cases, it'll place one item per row.
-        if let width = proposal.width,
-           proposal != .zero,
+        if proposal != .zero,
            proposal != .infinity,
            proposal != .unspecified
         {
-            maxWidth = width
+            switch axis {
+            case .horizontal:
+                if let width = proposal.width {
+                    availableAxisLength = width
+                }
+            case .vertical:
+                if let height = proposal.height {
+                    availableAxisLength = height
+                }
+            }
         }
 
-        var rows: [[LayoutSubview]] = []
+        var subviewGroup: [[LayoutSubview]] = []
 
-        var width: CGFloat = 0
-        var currentRowWidth: CGFloat = 0
+        var groupAxisLength: CGFloat = 0
+        var currentAxisLength: CGFloat = 0
 
         for subview in subviews {
-            if currentRowWidth > maxWidth {
-                currentRowWidth = 0
+            if currentAxisLength > availableAxisLength {
+                currentAxisLength = 0
             }
 
             // This will be true for the first run as well.
-            if currentRowWidth == 0 {
-                rows.append([])
+            if currentAxisLength == 0 {
+                subviewGroup.append([])
             }
 
-            guard var currentRow = rows.last else {
+            guard var currentGroup = subviewGroup.last else {
                 // This should never happen
                 break
             }
 
-            if currentRowWidth > 0 {
-                currentRowWidth += horizontalSpacing
+            if currentAxisLength > 0 {
+                currentAxisLength += isHorizontal
+                    ? horizontalSpacing
+                    : verticalSpacing
             }
 
-            let subviewWidth = subview.dimensions(in: proposal).width
+            let subviewLength = isHorizontal
+                ? subview.dimensions(in: proposal).width
+                : subview.dimensions(in: proposal).height
 
-            currentRowWidth += subviewWidth
+            currentAxisLength += subviewLength
 
-            if currentRowWidth > maxWidth {
-                rows.append([subview])
-                currentRowWidth = subviewWidth
+            if currentAxisLength > availableAxisLength {
+                subviewGroup.append([subview])
+                currentAxisLength = subviewLength
             } else {
-                currentRow.append(subview)
-                rows[rows.count - 1] = currentRow
+                currentGroup.append(subview)
+                subviewGroup[subviewGroup.count - 1] = currentGroup
             }
 
-            if currentRowWidth > width {
-                width = currentRowWidth
+            if currentAxisLength > groupAxisLength {
+                groupAxisLength = currentAxisLength
             }
         }
 
-        return (rows: rows, width: width)
+        return (subviewGroup: subviewGroup, groupAxisLength: groupAxisLength)
     }
 
-    // TODO: Handle vertical layouts as well
+    // FIXME: Have different names besides length and widthOrHeight
     public func sizeThatFits(
         proposal: ProposedViewSize,
         subviews: Subviews,
         cache: inout ()
     ) -> CGSize {
-        let (rows, actualWidth) = rows(subviews: subviews, proposal: proposal)
+        let (subviewGroup, groupAxisLength) = subviewGroup(subviews: subviews, proposal: proposal)
 
-        var actualHeight: CGFloat = 0
+        var crossGroupLength: CGFloat = 0
 
-        for row in rows {
-            let rowHeight = row.maxHeight(in: proposal)
+        for subview in subviewGroup {
+            let subviewHeightOrWidth = isHorizontal
+                ? subview.maxHeight(in: proposal)
+                : subview.maxWidth(in: proposal)
 
-            if actualHeight > 0 {
-                actualHeight += verticalSpacing
+            if crossGroupLength > 0 {
+                crossGroupLength += isHorizontal
+                    ? verticalSpacing
+                    : horizontalSpacing
             }
 
-            actualHeight += rowHeight
+            crossGroupLength += subviewHeightOrWidth
         }
 
-        return CGSize(width: actualWidth, height: actualHeight)
+        let width = isHorizontal
+            ? groupAxisLength
+            : crossGroupLength
+        let height = isHorizontal
+            ? crossGroupLength
+            : groupAxisLength
+
+        return CGSize(width: width, height: height)
     }
 
+    // This method needs to be refactored desparately after adding alternative axis.
+    // majorLength, minorLength
+    // length, crossLength
+    // axisLength, crossLength
+    // lengthAlongAxis, crossLength
     public func placeSubviews(
         in bounds: CGRect,
         proposal: ProposedViewSize,
         subviews: Subviews,
         cache: inout ()
     ) {
-        let (rows, _) = rows(subviews: subviews, proposal: proposal)
+        let (subviewGroup, _) = subviewGroup(subviews: subviews, proposal: proposal)
 
-        var y: CGFloat = 0
-        var x: CGFloat = 0
+        var axisPosition: CGFloat = 0
+        var crossPosition: CGFloat = 0
 
-        for row in rows {
-            x = 0
+        for subview in subviewGroup {
+            let crossLength = isHorizontal
+                ? subview.maxHeight(in: proposal)
+                : subview.maxWidth(in: proposal)
 
-            let rowHeight = row.maxHeight(in: proposal)
+            axisPosition = 0
 
-            if y > 0 {
-                y += verticalSpacing
+            if crossPosition > 0 {
+                crossPosition += isHorizontal
+                    ? verticalSpacing
+                    : horizontalSpacing
             }
 
-            y += rowHeight / 2
+            crossPosition += crossLength / 2
 
-            for subview in row {
-                if x > 0 {
-                    x += horizontalSpacing
+            for subview in subview {
+                let axisLength = isHorizontal
+                    ? subview.dimensions(in: proposal).width
+                    : subview.dimensions(in: proposal).height
+
+                if axisPosition > 0 {
+                    axisPosition += isHorizontal
+                        ? horizontalSpacing
+                        : verticalSpacing
                 }
 
-                let subviewWidth = subview.dimensions(in: proposal).width
-
-                x += subviewWidth / 2
+                axisPosition += axisLength / 2
 
                 subview.place(
                     at: CGPoint(
-                        x: x + bounds.origin.x,
-                        y: y + bounds.origin.y
+                        x: bounds.origin.x
+                            + (
+                                isHorizontal
+                                    ? axisPosition
+                                    : crossPosition
+                            ),
+                        y: bounds.origin.y
+                            + (
+                                isHorizontal
+                                    ? crossPosition
+                                    : axisPosition
+                            )
                     ),
                     anchor: .center,
                     proposal: ProposedViewSize(
-                        width: subviewWidth,
-                        height: rowHeight
+                        width: isHorizontal
+                            ? axisLength
+                            : crossLength,
+                        height: isHorizontal
+                            ? crossLength
+                            : axisLength
                     )
                 )
 
-                x += subviewWidth / 2
+                axisPosition += axisLength / 2
             }
 
-            y += rowHeight / 2
+            crossPosition += crossLength / 2
         }
     }
 }
@@ -219,7 +276,7 @@ private extension Array where Element == LayoutSubview {
 
 struct CUIFlowLayout_Previews: PreviewProvider {
     static func text(for index: Int) -> String {
-        if index % 7 == 0{
+        if index % 7 == 0 {
             return "wider \(index)"
         } else if index % 9 == 0 {
             return "really\ntall\n\(index)"
@@ -230,19 +287,38 @@ struct CUIFlowLayout_Previews: PreviewProvider {
         return "\(index)"
     }
 
+    static var placeholderViews: some View {
+        ForEach(0 ..< 50, id: \.self) { index in
+            Text(text(for: index))
+                .padding(.standardSpacing)
+                .background(.gray)
+                .clipShape(RoundedRectangle(cornerRadius: .cornerRadius))
+        }
+    }
+
     static var previews: some View {
         if #available(iOS 16, macOS 12.6, *) {
-            return CUIFlowLayout {
-                ForEach(0 ..< 50, id: \.self) { index in
-                    Text(text(for: index))
-                        .padding(.standardSpacing)
-                        .background(.gray)
-                        .clipShape(RoundedRectangle(cornerRadius: .cornerRadius))
+            return VStack {
+                ScrollView {
+                    CUIFlowLayout(axis: .horizontal) {
+                        placeholderViews
+                    }
+                    .padding()
                 }
+                .background(.gray.opacity(0.5))
+                .clipShape(RoundedRectangle(cornerRadius: .cornerRadius))
+                .frame(height: 300)
+
+                ScrollView(.horizontal) {
+                    CUIFlowLayout(axis: .vertical) {
+                        placeholderViews
+                    }
+                    .padding()
+                }
+                .frame(height: 300)
+                .background(.gray.opacity(0.5))
+                .clipShape(RoundedRectangle(cornerRadius: .cornerRadius))
             }
-            .padding()
-            .background(.gray.opacity(0.5))
-            .clipShape(RoundedRectangle(cornerRadius: .cornerRadius))
         } else {
             return EmptyView()
         }
