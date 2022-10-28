@@ -28,8 +28,6 @@ import SwiftUI
 
 // Adapted from https://www.hackingwithswift.com/quick-start/swiftui/how-to-automatically-switch-between-hstack-and-vstack-based-on-size-class
 public struct AdaptiveStackView<Content: View>: View {
-    @Namespace
-    var animation
     @Environment(\.horizontalSizeClass)
     var sizeClass
 
@@ -70,20 +68,18 @@ public struct AdaptiveStackView<Content: View>: View {
     }
 
     public var body: some View {
-        Group {
-            if axis == .vertical {
-                VStack(
-                    alignment: horizontalAlignment,
-                    spacing: spacing,
-                    content: content
-                )
-            } else {
-                HStack(
-                    alignment: verticalAlignment,
-                    spacing: spacing,
-                    content: content
-                )
-            }
+        if axis == .vertical {
+            VStack(
+                alignment: horizontalAlignment,
+                spacing: spacing,
+                content: content
+            )
+        } else {
+            HStack(
+                alignment: verticalAlignment,
+                spacing: spacing,
+                content: content
+            )
         }
     }
 }
@@ -92,21 +88,34 @@ struct AdaptiveStackView_Previews: PreviewProvider {
     struct Preview: View {
         @Namespace
         var animation
+
+        @State var isHorizontal = true
+
         @State
         var axis: Axis = .horizontal
 
         var body: some View {
-            AdaptiveStackView(axis: axis) {
+            VStack {
+                Spacer()
+
+                AdaptiveStackView(axis: axis) {
+                    Text("Placeholder")
+                        .matchedGeometryEffect(id: "text", in: animation, properties: .position)
+
+                    Rectangle().foregroundColor(.yellow).frame(width: 100, height: 100)
+                        .matchedGeometryEffect(id: "rect", in: animation)
+                }
+                .animation(.default, value: axis)
+
+                Spacer()
+
+                // This button has to be outside the adaptive stack, otherwise the animation won't happen.
                 Button {
                     axis = axis == .horizontal ? .vertical : .horizontal
                 } label: {
                     Text("Change Orientation")
                 }
-
-                Text("Placeholder")
             }
-            // FIXME: Animation is not working, even with matched animation
-            .animation(.default, value: axis)
         }
     }
 
