@@ -28,8 +28,10 @@ import SwiftUI
 
 // Adapted from https://www.hackingwithswift.com/quick-start/swiftui/how-to-automatically-switch-between-hstack-and-vstack-based-on-size-class
 public struct AdaptiveStackView<Content: View>: View {
+    #if os(iOS)
     @Environment(\.horizontalSizeClass)
     var sizeClass
+    #endif
 
     var axis: Axis
     let horizontalAlignment: HorizontalAlignment
@@ -51,6 +53,7 @@ public struct AdaptiveStackView<Content: View>: View {
         self.content = content
     }
 
+    #if os(iOS)
     public init(
         axis: (UserInterfaceSizeClass?) -> Axis,
         horizontalAlignment: HorizontalAlignment = .center,
@@ -66,6 +69,7 @@ public struct AdaptiveStackView<Content: View>: View {
 
         self.axis = axis(sizeClass)
     }
+    #endif
 
     public var body: some View {
         if axis == .vertical {
