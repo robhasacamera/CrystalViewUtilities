@@ -27,7 +27,9 @@
 import SwiftUI
 
 public extension Alignment {
-    /// Returns and inverted version of the alignment
+    // MARK: - Calculating other alignments
+
+    /// Returns and inverted version of the alignment.
     ///
     /// As an example, if the alignment is ``topLeading``,
     /// calling inverted would return ``bottomTrailing``.

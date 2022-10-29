@@ -27,6 +27,8 @@
 import SwiftUI
 
 public extension View {
+    // MARK: - Conditional modifiers
+
     /// Applies the given transform if the given condition evaluates to `true`.
     ///
     /// From: https://www.avanderlee.com/swiftui/conditional-view-modifier/
@@ -46,18 +48,6 @@ public extension View {
         }
     }
 
-    /// Wraps actions that should be exceuted without animation.
-    ///
-    /// Adapted from: [Asperi's](https://stackoverflow.com/users/12299030/asperi) [answer on Stack Overflow] (https://stackoverflow.com/a/72973172/898984)
-    /// - Parameter action: Action to execute without triggerring an animation.
-    func withoutAnimation(action: @escaping () -> Void) {
-        var transaction = Transaction()
-        transaction.disablesAnimations = true
-        withTransaction(transaction) {
-            action()
-        }
-    }
-
     /// Must use casting when passing in a nil or optional value.
     ///
     /// Example:
@@ -73,51 +63,9 @@ public extension View {
         }
     }
 
-    /// Masks this view using the inverse alpha channel of a given view.
-    ///
-    /// Adapted from https://www.fivestars.blog/articles/reverse-masks-how-to/
-    /// - Parameters:
-    ///     - alignment: The alignment for `mask` in relation to this view. Default is `.center`.
-    ///     - mask: The view whose alpha the rendering system inversely applies to
-    ///       the specified view.
-    func reverseMask<Mask: View>(
-        alignment: Alignment = .center,
-        @ViewBuilder _ mask: () -> Mask
-    ) -> some View {
-        self.mask {
-            Rectangle()
-                .ignoresSafeArea()
-                .overlay(alignment: alignment) {
-                    mask()
-                        .blendMode(.destinationOut)
-                }
-        }
-    }
-
-    /// Rounds the provided corners of the view.
-    ///
-    /// This was adapted from [Mojtaba Hosseini](https://stackoverflow.com/users/5623035/mojtaba-hosseini)'s [answer on Stack Overflow](https://stackoverflow.com/a/58606176/898984).
-    /// - Parameters:
-    ///   - radius: The radius to use to round the corners. Default is `.infinity`.
-    ///   - corners: The corners to round. Default is ``CUIRoundedCornerShape/Corner/allCorners``.
-    func cornerRadius(
-        _ radius: CGFloat = .cornerRadius,
-        corners: CUIRoundedCornerShape.Corner = .allCorners
-    ) -> some View {
-        self.clipShape(
-            CUIRoundedCornerShape(
-                radius: radius,
-                corners: corners
-            )
-        )
-    }
+    // MARKS: - Presenting other views
 
     #if os(iOS)
-        /// Embed the view inside a hosting controller.
-        var asHostingController: UIViewController {
-            return UIHostingController(rootView: self)
-        }
-
         // TODO: Could possibly use this to make a absolute position modifier
         /// Presents a Full Screen Cover, without the usual slide up animation.
         ///
@@ -167,6 +115,70 @@ public extension View {
             )
         }
     #endif
+
+    // MARK: - Integrating with UIKit
+
+    #if os(iOS)
+        /// Embed the view inside a hosting controller.
+        var asHostingController: UIViewController {
+            return UIHostingController(rootView: self)
+        }
+    #endif
+
+    // MARK: - Animation
+
+    /// Wraps actions that should be exceuted without animation.
+    ///
+    /// Adapted from: [Asperi's](https://stackoverflow.com/users/12299030/asperi) [answer on Stack Overflow] (https://stackoverflow.com/a/72973172/898984)
+    /// - Parameter action: Action to execute without triggerring an animation.
+    func withoutAnimation(action: @escaping () -> Void) {
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) {
+            action()
+        }
+    }
+
+    // MARK: - Masking views
+
+    /// Rounds the provided corners of the view.
+    ///
+    /// This was adapted from [Mojtaba Hosseini](https://stackoverflow.com/users/5623035/mojtaba-hosseini)'s [answer on Stack Overflow](https://stackoverflow.com/a/58606176/898984).
+    /// - Parameters:
+    ///   - radius: The radius to use to round the corners. Default is `.infinity`.
+    ///   - corners: The corners to round. Default is ``CUIRoundedCornerShape/Corner/allCorners``.
+    func cornerRadius(
+        _ radius: CGFloat = .cornerRadius,
+        corners: CUIRoundedCornerShape.Corner = .allCorners
+    ) -> some View {
+        self.clipShape(
+            CUIRoundedCornerShape(
+                radius: radius,
+                corners: corners
+            )
+        )
+    }
+
+    /// Masks this view using the inverse alpha channel of a given view.
+    ///
+    /// Adapted from https://www.fivestars.blog/articles/reverse-masks-how-to/
+    /// - Parameters:
+    ///     - alignment: The alignment for `mask` in relation to this view. Default is `.center`.
+    ///     - mask: The view whose alpha the rendering system inversely applies to
+    ///       the specified view.
+    func reverseMask<Mask: View>(
+        alignment: Alignment = .center,
+        @ViewBuilder _ mask: () -> Mask
+    ) -> some View {
+        self.mask {
+            Rectangle()
+                .ignoresSafeArea()
+                .overlay(alignment: alignment) {
+                    mask()
+                        .blendMode(.destinationOut)
+                }
+        }
+    }
 }
 
 #if os(iOS)

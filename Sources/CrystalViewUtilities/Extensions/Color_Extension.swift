@@ -27,6 +27,8 @@
 import SwiftUI
 
 public extension Color {
+    // MARK: - Transparency modifiers
+
     /// Returns the a very transparent varient of the color.
     ///
     /// This will be less opaque then ``regularTransparent``.
@@ -39,7 +41,7 @@ public extension Color {
         opacity(0.5)
     }
 
-    /// Convience call for ``regularTransparency``
+    /// Convience call for ``regularTransparency``.
     var transparent: Color {
         regularTransparent
     }

@@ -27,9 +27,11 @@
 import CoreGraphics
 
 public extension CGFloat {
-    /// Standard spacing used throughout Crystal UI
+    // MARK: - Standard values
+
+    /// Standard spacing used throughout Crystal UI.
     static let standardSpacing: CGFloat = 8
-    /// Default corner radius used for menus and controls
+    /// Default corner radius used for menus and controls.
     static let cornerRadius: CGFloat = 10
     /// The minimum length used for any controls that are interactive.
     ///

@@ -27,6 +27,9 @@
 import SwiftUI
 
 public extension Image {
+    // MARK: - Position modifiers
+
+    /// Centers the image in the available space.
     func centered() -> some View {
         GeometryReader { geo in
             self

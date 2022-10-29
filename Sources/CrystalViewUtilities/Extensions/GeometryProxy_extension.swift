@@ -27,6 +27,8 @@
 import SwiftUI
 
 extension GeometryProxy: Equatable {
+    // MARK: - Comparing `GeometryProxy`
+
     public static func == (lhs: GeometryProxy, rhs: GeometryProxy) -> Bool {
         lhs.frame(in: .global) == rhs.frame(in: .global)
         && lhs.frame(in: .local) == rhs.frame(in: .local)
