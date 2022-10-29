@@ -1,3 +1,0 @@
-#  Alignment Extension
-
-Some documentation

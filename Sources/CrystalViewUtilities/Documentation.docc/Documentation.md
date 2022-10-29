@@ -23,6 +23,7 @@ This package is a base for Crystal UI. It provides several utility views and ext
 - <doc:Alignment_Extension>
 - <doc:CGFloat_Extension>
 - <doc:Color_Extension>
+- <doc:Image_Extension>
 - <doc:GeometryProxy_Extension>
 - <doc:UIScreen_Extension>
 - <doc:View_Extension>

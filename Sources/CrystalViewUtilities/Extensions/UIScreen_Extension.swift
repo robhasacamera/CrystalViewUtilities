@@ -29,6 +29,8 @@
 import UIKit
 
 public extension UIScreen{
+    // MARK: - Getting screen size
+
     /// The width of the main screen.
     static var width: CGFloat {
         UIScreen.main.bounds.size.width
