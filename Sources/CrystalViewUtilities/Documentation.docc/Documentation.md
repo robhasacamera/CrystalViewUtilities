@@ -16,11 +16,15 @@ This package is a base for Crystal UI. It provides several utility views and ext
 
 ## Topics
 
-### Utility Views
+### Views
 
 - ``CUISizeReader``
 - ``CUIChildGeometryReader``
 - ``CUIFlowLayout``
+- ``CUIAdaptiveStackView``
+
+### Shapes
+- ``CUIRoundedCornerShape``
 
 ### View Extension
 

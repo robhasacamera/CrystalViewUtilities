@@ -26,11 +26,14 @@
 
 import SwiftUI
 
-// Adapted from https://www.hackingwithswift.com/quick-start/swiftui/how-to-automatically-switch-between-hstack-and-vstack-based-on-size-class
-public struct AdaptiveStackView<Content: View>: View {
+/// A view that conditionally acts like an `HStack` or `VStack`.
+/// Adapted from https://www.hackingwithswift.com/quick-start/swiftui/how-to-automatically-switch-between-hstack-and-vstack-based-on-size-class
+public struct CUIAdaptiveStackView<Content: View>: View {
     #if os(iOS)
     @Environment(\.horizontalSizeClass)
-    var sizeClass
+    var horizontalSizeClass
+    @Environment(\.verticalSizeClass)
+    var verticalSizeClass
     #endif
 
     var axis: Axis
@@ -39,6 +42,13 @@ public struct AdaptiveStackView<Content: View>: View {
     let spacing: CGFloat?
     let content: () -> Content
 
+    /// Creates a `AdaptiveStackView` using the axis provided.
+    /// - Parameters:
+    ///   - axis: The axis that determines the layout direction.
+    ///   - horizontalAlignment: Alignment used when there is a vertical layout.
+    ///   - verticalAlignment: Alignment used when there is a horizontal layout.
+    ///   - spacing: The distance between adjacent subviews, or nil if you want the stack to choose a default distance for each pair of subviews.
+    ///   - content: A view builder that creates the content of this stack.
     public init(
         axis: @autoclosure () -> Axis,
         horizontalAlignment: HorizontalAlignment = .center,
@@ -54,20 +64,32 @@ public struct AdaptiveStackView<Content: View>: View {
     }
 
     #if os(iOS)
+    /// Creates a `AdaptiveStackView` using the axis provided.
+    ///
+    /// This initializer provides both the horizontal and vertical size classes for the convenience when deciding which axis to use.
+    /// - Parameters:
+    ///   - axis: A closure that provides the axis. The horizontal and vertical size classes are provided (in this order) to help make this decision for the layout direction..
+    ///   - horizontalAlignment: Alignment used when there is a vertical layout.
+    ///   - verticalAlignment: Alignment used when there is a horizontal layout.
+    ///   - spacing: The distance between adjacent subviews, or nil if you want the stack to choose a default distance for each pair of subviews.
+    ///   - content: A view builder that creates the content of this stack.
     public init(
-        axis: (UserInterfaceSizeClass?) -> Axis,
+        axis: (
+            _ horizontalSizeClass: UserInterfaceSizeClass?,
+            _ verticalSizeClass: UserInterfaceSizeClass?
+        ) -> Axis,
         horizontalAlignment: HorizontalAlignment = .center,
         verticalAlignment: VerticalAlignment = .center,
         spacing: CGFloat? = nil,
         @ViewBuilder content: @escaping () -> Content
     ) {
-        self.axis = axis(nil)
+        self.axis = axis(nil, nil)
         self.horizontalAlignment = horizontalAlignment
         self.verticalAlignment = verticalAlignment
         self.spacing = spacing
         self.content = content
 
-        self.axis = axis(sizeClass)
+        self.axis = axis(horizontalSizeClass, verticalSizeClass)
     }
     #endif
 
@@ -88,7 +110,7 @@ public struct AdaptiveStackView<Content: View>: View {
     }
 }
 
-struct AdaptiveStackView_Previews: PreviewProvider {
+struct CUIAdaptiveStackView_Previews: PreviewProvider {
     struct Preview: View {
         @Namespace
         var animation
@@ -102,7 +124,7 @@ struct AdaptiveStackView_Previews: PreviewProvider {
             VStack {
                 Spacer()
 
-                AdaptiveStackView(axis: axis) {
+                CUIAdaptiveStackView(axis: axis) {
                     Text("Placeholder")
                         .matchedGeometryEffect(id: "text", in: animation, properties: .position)
 
