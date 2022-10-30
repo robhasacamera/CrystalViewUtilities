@@ -31,7 +31,7 @@ let DEBUG_LAYOUT_ChildSizeReader = false
 /// A view that can reads the size of the view provided and provides it to the parent.
 ///
 /// Adapted from [Wil Gieseler's](https://stackoverflow.com/users/813265/wil-gieseler) [answer on StackOverflow](https://stackoverflow.com/a/60861575/898984).
-public struct CUISizeReader<Content: View, ID: Hashable>: View {
+public struct CUIChildSizeReader<Content: View, ID: Hashable>: View {
     @State var stateSize: CGSize = .zero
     @Binding var size: CGSize
     let id: ID
@@ -126,20 +126,20 @@ private struct SizePreferenceKey<ID: Hashable>: PreferenceKey {
     }
 }
 
-struct CUISizeReader_Previews: PreviewProvider {
+struct CUIChildSizeReader_Previews: PreviewProvider {
     struct Preview: View {
         @State
         var size = CGSize.zero
 
         var body: some View {
             VStack {
-                CUISizeReader(size: $size, id: "binding") {
+                CUIChildSizeReader(size: $size, id: "binding") {
                     Text(String(format: "width=%.2f\nheight=%.2f", size.width, size.height))
                         .frame(width: 200, height: 50)
                         .background(.yellow)
                 }
 
-                CUISizeReader(id: "proxy") { size in
+                CUIChildSizeReader(id: "proxy") { size in
                     Text(String(format: "width=%.2f\nheight=%.2f", size.width, size.height))
                         .background(.yellow)
                 }

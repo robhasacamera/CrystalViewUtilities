@@ -10,7 +10,7 @@ This package is a base for Crystal UI. It provides several utility views and ext
 
 ### Views
 
-- ``CUISizeReader``
+- ``CUIChildSizeReader``
 - ``CUIChildGeometryReader``
 - ``CUIFlowLayout``
 - ``CUIAdaptiveStackView``
