@@ -32,29 +32,35 @@ struct CUITitledGroup<Content: View>: View {
     var id = UUID()
 
     var title: String?
+    var lineWidth: CGFloat
     var content: Content
 
+    @State
+    var titleSize: CGSize = .zero
+
     public init(
-        title: String? = nil,
+        title: String?,
+        lineWidth: CGFloat = 2,
         @ViewBuilder content: () -> Content
     ) {
         self.title = title
+        self.lineWidth = lineWidth
         self.content = content()
     }
 
     func titleView(includeBackground: Bool) -> some View {
         Group {
             if let title {
-                CUIChildSizeReader(id: id) { size in
+                CUIChildSizeReader(size: $titleSize, id: id) {
                     Text(title)
+                        .font(.subheadline)
                         .padding(.standardSpacing / 2)
                         .background(includeBackground ? .gray : .clear)
                         .position(
-                            x: size.width / 2 + .standardSpacing * 1.5,
+                            x: titleSize.width / 2 + .standardSpacing * 1.5,
                             y: 0
                         )
                 }
-
             }
         }
     }
@@ -64,24 +70,41 @@ struct CUITitledGroup<Content: View>: View {
             .padding(.standardSpacing * 2)
             .overlay(
                 RoundedRectangle(cornerRadius: .cornerRadius)
-                    .stroke(.blue, lineWidth: 2)
+                    .stroke(lineWidth: lineWidth)
+                    .padding(lineWidth / 2)
             )
             .reverseMask(alignment: .topLeading) {
                 titleView(includeBackground: true)
                     .fixedSize()
-
             }
             .overlay(alignment: .topLeading) {
                 titleView(includeBackground: false)
                     .fixedSize()
             }
+            .padding(.top, (titleSize.height - lineWidth) / 2)
     }
 }
 
 struct CUITitledGroup_Previews: PreviewProvider {
     static var previews: some View {
-        CUITitledGroup(title: "Title") {
-            Text("Test content")
+        VStack() {
+            CUITitledGroup(title: "Title") {
+                Text("Test Content")
+            }
+
+            CUITitledGroup(title: "Title") {
+                Text("Tall\nTest\nContent")
+            }
+
+            CUITitledGroup(title: "Title") {
+                Text("Test Content with a colored group")
+                    .foregroundColor(.black)
+            }
+            .foregroundColor(.yellow)
+
+            CUITitledGroup(title: nil) {
+                Text("Group with no title")
+            }
         }
     }
 }
