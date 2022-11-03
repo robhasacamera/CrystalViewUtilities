@@ -27,40 +27,40 @@
 import SwiftUI
 
 // FIXME: Stroke looks weird as is.
-struct CUITitledGroup<Content: View>: View {
+public struct CUITitledGroup<Label: View, Content: View>: View {
     @State
     var id = UUID()
 
-    var title: String?
     var lineWidth: CGFloat
+    var cornerRadius: CGFloat
+    var label: Label
     var content: Content
 
     @State
     var titleSize: CGSize = .zero
 
     public init(
-        title: String?,
         lineWidth: CGFloat = 2,
+        cornerRadius: CGFloat = .cornerRadius,
+        @ViewBuilder label: () -> Label,
         @ViewBuilder content: () -> Content
     ) {
-        self.title = title
         self.lineWidth = lineWidth
+        self.cornerRadius = cornerRadius
+        self.label = label()
         self.content = content()
     }
 
     func titleView(includeBackground: Bool) -> some View {
         Group {
-            if let title {
-                CUIChildSizeReader(size: $titleSize, id: id) {
-                    Text(title)
-                        .font(.subheadline)
-                        .padding(.standardSpacing / 2)
-                        .background(includeBackground ? .gray : .clear)
-                        .position(
-                            x: titleSize.width / 2 + .standardSpacing * 1.5,
-                            y: 0
-                        )
-                }
+            CUIChildSizeReader(size: $titleSize, id: id) {
+                label
+                    .padding(.horizontal, .standardSpacing / 2)
+                    .background(includeBackground ? .gray : .clear)
+                    .position(
+                        x: titleSize.width / 2 + cornerRadius,
+                        y: lineWidth / 2
+                    )
             }
         }
     }
@@ -69,7 +69,7 @@ struct CUITitledGroup<Content: View>: View {
         content
             .padding(.standardSpacing * 2)
             .overlay(
-                RoundedRectangle(cornerRadius: .cornerRadius)
+                RoundedRectangle(cornerRadius: cornerRadius)
                     .stroke(lineWidth: lineWidth)
                     .padding(lineWidth / 2)
             )
@@ -85,9 +85,45 @@ struct CUITitledGroup<Content: View>: View {
     }
 }
 
+public extension CUITitledGroup where Label == Text {
+    init(
+        title: String,
+        lineWidth: CGFloat = 2,
+        cornerRadius: CGFloat = .cornerRadius,
+        @ViewBuilder content: () -> Content
+    ) {
+        self.init(
+            lineWidth: lineWidth,
+            cornerRadius: cornerRadius
+        ) {
+            Text(title)
+                .font(.subheadline)
+        } content: {
+            content()
+        }
+    }
+}
+
+public extension CUITitledGroup where Label == EmptyView {
+    init(
+        lineWidth: CGFloat = 2,
+        cornerRadius: CGFloat = .cornerRadius,
+        @ViewBuilder content: () -> Content
+    ) {
+        self.init(
+            lineWidth: lineWidth,
+            cornerRadius: cornerRadius
+        ) {
+            EmptyView()
+        } content: {
+            content()
+        }
+    }
+}
+
 struct CUITitledGroup_Previews: PreviewProvider {
     static var previews: some View {
-        VStack() {
+        VStack {
             CUITitledGroup(title: "Title") {
                 Text("Test Content")
             }
@@ -102,8 +138,16 @@ struct CUITitledGroup_Previews: PreviewProvider {
             }
             .foregroundColor(.yellow)
 
-            CUITitledGroup(title: nil) {
+            CUITitledGroup {
                 Text("Group with no title")
+            }
+
+            CUITitledGroup(cornerRadius: 20) {
+                Circle()
+                    .foregroundColor(.yellow)
+                    .frame(width: 10, height: 10)
+            } content: {
+                Text("Group with custom label\nand larger corner radius")
             }
         }
     }
