@@ -31,7 +31,7 @@ import SwiftUI
 /// This was adapted from [Mojtaba Hosseini](https://stackoverflow.com/users/5623035/mojtaba-hosseini)'s [answer on Stack Overflow](https://stackoverflow.com/a/58606176/898984).
 public struct CUIRoundedCornerShape: Shape {
     var radius: CGFloat
-    var corners: Corner
+    var corners: CUICorner
 
     /// Initilizes a shape with optional corners to be rounded.
     /// - Parameters:
@@ -39,7 +39,7 @@ public struct CUIRoundedCornerShape: Shape {
     ///   - corners: The corners to round.
     public init(
         radius: CGFloat = .cornerRadius,
-        corners: Corner = .allCorners
+        corners: CUICorner = .allCorners
     ) {
         self.radius = radius
         self.corners = corners
@@ -53,75 +53,6 @@ public struct CUIRoundedCornerShape: Shape {
                 cornerRadius: radius
             ).cgPath
         )
-    }
-
-    /// A wrapper around `UIRectCorner` that adapts corners to leading and trailing terminology.
-    public struct Corner: OptionSet {
-        @Environment(\.layoutDirection) var direction
-
-        public typealias RawValue = Int
-        public let rawValue: RawValue
-
-        public init(rawValue: RawValue) {
-            self.rawValue = rawValue
-        }
-
-        public static let topLeading = Corner(rawValue: 1 << 0)
-        public static let topTrailing = Corner(rawValue: 1 << 1)
-        public static let bottomLeading = Corner(rawValue: 1 << 2)
-        public static let bottomTrailing = Corner(rawValue: 1 << 3)
-        public static let allCorners: Corner = [topLeading, topTrailing, bottomLeading, bottomTrailing]
-
-        #if os(iOS)
-        /// Translates the leading/trailing to left/right depending on the current layout direction.
-        public var rectCorner: UIRectCorner {
-            let isRTL = direction == .rightToLeft
-
-            var rectCorners: UIRectCorner = []
-
-            if self.contains(.topLeading) {
-                rectCorners.insert(isRTL ? .topRight : .topLeft)
-            }
-
-            if self.contains(.topTrailing) {
-                rectCorners.insert(isRTL ? .topLeft : .topRight)
-            }
-
-            if self.contains(.bottomLeading) {
-                rectCorners.insert(isRTL ? .bottomRight : .bottomLeft)
-            }
-
-            if self.contains(.bottomTrailing) {
-                rectCorners.insert(isRTL ? .bottomLeft : .bottomRight)
-            }
-
-            return rectCorners
-        }
-        #endif
-
-        var bezierCorner: BezierCorner {
-            let isRTL = direction == .rightToLeft
-
-            var bezierCorners: BezierCorner = []
-
-            if self.contains(.topLeading) {
-                bezierCorners.insert(isRTL ? .topRight : .topLeft)
-            }
-
-            if self.contains(.topTrailing) {
-                bezierCorners.insert(isRTL ? .topLeft : .topRight)
-            }
-
-            if self.contains(.bottomLeading) {
-                bezierCorners.insert(isRTL ? .bottomRight : .bottomLeft)
-            }
-
-            if self.contains(.bottomTrailing) {
-                bezierCorners.insert(isRTL ? .bottomLeft : .bottomRight)
-            }
-
-            return bezierCorners
-        }
     }
 }
 

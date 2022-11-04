@@ -26,7 +26,6 @@
 
 import SwiftUI
 
-// FIXME: Stroke looks weird as is.
 public struct CUITitledGroup<Label: View, Content: View>: View {
     @State
     var id = UUID()

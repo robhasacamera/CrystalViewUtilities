@@ -149,7 +149,7 @@ public extension View {
     ///   - corners: The corners to round. Default is ``CUIRoundedCornerShape/Corner/allCorners``.
     func cornerRadius(
         _ radius: CGFloat = .cornerRadius,
-        corners: CUIRoundedCornerShape.Corner = .allCorners
+        corners: CUICorner = .allCorners
     ) -> some View {
         self.clipShape(
             CUIRoundedCornerShape(
