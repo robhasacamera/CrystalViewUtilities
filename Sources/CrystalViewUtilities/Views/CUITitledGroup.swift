@@ -39,8 +39,6 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
     @State
     var labelSize: CGSize = .zero
 
-    // TODO: Need to provide different alignment options, but they need to make sense.
-    // When text is provided, it's automatically rotated on it's side if going on a horizontal edge
     public init(
         positionSet: PositionSet = .horizontal(.top, .leading),
         lineWidth: CGFloat = 2,
@@ -170,13 +168,14 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
 
     public var body: some View {
         content
-            // TODO: Need to make this a passed in property
+            // FIXME: Need to be able to remove this, so it's only there when needed. However, this will make the text default content init more difficult as I'm not sure how to add it there since padding returns some View. I could create a custom text wrapper that makes the padding and rotation calc for me, and use that as the type. I think that would work well.
             .padding(.standardSpacing * 2)
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius)
                     .stroke(lineWidth: lineWidth)
                     .padding(lineWidth / 2)
             )
+            // FIXME: Right now is something goes to the edge, it'll get partially masked to. Might need to just draw this. It'll allow me to give it rounded endcaps as well.
             .reverseMask(alignment: layoutInfo.alignment) {
                 labelView(includeBackground: true)
                     .fixedSize()
