@@ -83,8 +83,8 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
             let labelToStrokePaddingEdge: Edge.Set = .horizontal
             let labelToOuterPaddingEdge: Edge.Set = hEdge == .top ? .top : .bottom
             let labelToOuterPaddingLength: CGFloat = (labelSize.height - lineWidth) / 2
-            // TODO: Why is this off by 8 for the bottom edge? Which happens to be standard spacing
-            let y: CGFloat = lineWidth / 2 + (hEdge == .top ? 0 : 8)
+            // FIXME: This is still a weird fix, it looks like label height isn't taken into account for the overlay
+            let y: CGFloat = lineWidth / 2 + (hEdge == .top ? 0 : labelSize.height - lineWidth)
 
             switch hAlignment {
             case .center:
@@ -126,8 +126,8 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
             let labelToStrokePaddingEdge: Edge.Set = .vertical
             let labelToOuterPaddingEdge: Edge.Set = vEdge == .leading ? .leading : .trailing
             let labelToOuterPaddingLength: CGFloat = (labelSize.width - lineWidth) / 2
-            // TODO: Why is this off by 8 as well?
-            let x: CGFloat = lineWidth / 2 + (vEdge == .leading ? 0 : 8)
+            // FIXME: This is still a weird fix, it looks like label width isn't taken into account for the overlay
+            let x: CGFloat = lineWidth / 2 + (vEdge == .leading ? 0 : labelSize.width - lineWidth)
 
             switch vAlignment {
             case .center:
@@ -271,7 +271,9 @@ struct CUITitledGroup_Previews: PreviewProvider {
             HStack {
                 CUITitledGroup(
                     positionSet: .horizontal(.top, .leading),
+                    lineWidth: 6,
                     cornerRadius: 20
+
                 ) {
                     Circle()
                         .foregroundColor(.yellow)
@@ -309,6 +311,7 @@ struct CUITitledGroup_Previews: PreviewProvider {
             HStack {
                 CUITitledGroup(
                     positionSet: .horizontal(.bottom, .leading),
+                    lineWidth: 6,
                     cornerRadius: 20
                 ) {
                     Circle()
@@ -371,6 +374,7 @@ struct CUITitledGroup_Previews: PreviewProvider {
 
                 CUITitledGroup(
                     positionSet: .vertical(.leading, .bottom),
+                    lineWidth: 6,
                     cornerRadius: 20
                 ) {
                     Circle()
@@ -409,6 +413,7 @@ struct CUITitledGroup_Previews: PreviewProvider {
 
                 CUITitledGroup(
                     positionSet: .vertical(.trailing, .bottom),
+                    lineWidth: 6,
                     cornerRadius: 20
                 ) {
                     Circle()
