@@ -30,68 +30,193 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
     @State
     var id = UUID()
 
+    var positionSet: PositionSet
     var lineWidth: CGFloat
     var cornerRadius: CGFloat
     var label: Label
     var content: Content
 
     @State
-    var titleSize: CGSize = .zero
+    var labelSize: CGSize = .zero
 
+    // TODO: Need to provide different alignment options, but they need to make sense.
+    // When text is provided, it's automatically rotated on it's side if going on a horizontal edge
     public init(
+        positionSet: PositionSet = .horizontal(.top, .leading),
         lineWidth: CGFloat = 2,
         cornerRadius: CGFloat = .cornerRadius,
         @ViewBuilder label: () -> Label,
         @ViewBuilder content: () -> Content
     ) {
+        self.positionSet = positionSet
         self.lineWidth = lineWidth
         self.cornerRadius = cornerRadius
         self.label = label()
         self.content = content()
     }
 
-    func titleView(includeBackground: Bool) -> some View {
+    func labelView(includeBackground: Bool) -> some View {
         Group {
-            CUIChildSizeReader(size: $titleSize, id: id) {
+            CUIChildSizeReader(size: $labelSize, id: id) {
                 label
-                    .padding(.horizontal, .standardSpacing / 2)
-                    .background(includeBackground ? .gray : .clear)
-                    .position(
-                        x: titleSize.width / 2 + cornerRadius,
-                        y: lineWidth / 2
+                    .padding(
+                        layoutInfo.labelToStrokePaddingEdge,
+                        .standardSpacing / 2
                     )
+                    .background(includeBackground ? .gray : .clear)
+                    .position(layoutInfo.position)
+            }
+        }
+    }
+
+    private struct LayoutInfo {
+        let alignment: Alignment
+        let position: CGPoint
+        let labelToStrokePaddingEdge: Edge.Set
+        let labelToOuterPaddingEdge: Edge.Set
+        let labelToOuterPaddingLength: CGFloat
+    }
+
+    private var layoutInfo: LayoutInfo {
+        switch positionSet {
+        case .horizontal(let hEdge, let hAlignment):
+            let labelToStrokePaddingEdge: Edge.Set = .horizontal
+            let labelToOuterPaddingEdge: Edge.Set = hEdge == .top ? .top : .bottom
+            let labelToOuterPaddingLength: CGFloat = (labelSize.height - lineWidth) / 2
+            // TODO: Why is this off by 8 for the bottom edge? Which happens to be standard spacing
+            let y: CGFloat = lineWidth / 2 + (hEdge == .top ? 0 : 8)
+
+            switch hAlignment {
+            case .center:
+                return LayoutInfo(
+                    alignment: hEdge == .top ? .top : .bottom,
+                    position: CGPoint(
+                        x: labelSize.width / 2,
+                        y: y
+                    ),
+                    labelToStrokePaddingEdge: labelToStrokePaddingEdge,
+                    labelToOuterPaddingEdge: labelToOuterPaddingEdge,
+                    labelToOuterPaddingLength: labelToOuterPaddingLength
+                )
+            case .trailing:
+                return LayoutInfo(
+                    alignment: hEdge == .top ? .topTrailing : .bottomTrailing,
+                    position: CGPoint(
+                        x: labelSize.width / 2 - cornerRadius,
+                        y: y
+                    ),
+                    labelToStrokePaddingEdge: labelToStrokePaddingEdge,
+                    labelToOuterPaddingEdge: labelToOuterPaddingEdge,
+                    labelToOuterPaddingLength: labelToOuterPaddingLength
+                )
+            case .leading: fallthrough
+            default:
+                return LayoutInfo(
+                    alignment: hEdge == .top ? .topLeading : .bottomLeading,
+                    position: CGPoint(
+                        x: labelSize.width / 2 + cornerRadius,
+                        y: y
+                    ),
+                    labelToStrokePaddingEdge: labelToStrokePaddingEdge,
+                    labelToOuterPaddingEdge: labelToOuterPaddingEdge,
+                    labelToOuterPaddingLength: labelToOuterPaddingLength
+                )
+            }
+        case .vertical(let vEdge, let vAlignment):
+            let labelToStrokePaddingEdge: Edge.Set = .vertical
+            let labelToOuterPaddingEdge: Edge.Set = vEdge == .leading ? .leading : .trailing
+            let labelToOuterPaddingLength: CGFloat = (labelSize.width - lineWidth) / 2
+            // TODO: Why is this off by 8 as well?
+            let x: CGFloat = lineWidth / 2 + (vEdge == .leading ? 0 : 8)
+
+            switch vAlignment {
+            case .center:
+                return LayoutInfo(
+                    alignment: vEdge == .leading ? .leading : .trailing,
+                    position: CGPoint(
+                        x: x,
+                        y: labelSize.height / 2
+                    ),
+                    labelToStrokePaddingEdge: labelToStrokePaddingEdge,
+                    labelToOuterPaddingEdge: labelToOuterPaddingEdge,
+                    labelToOuterPaddingLength: labelToOuterPaddingLength
+                )
+            case .bottom:
+                return LayoutInfo(
+                    alignment: vEdge == .leading ? .bottomLeading : .bottomTrailing,
+                    position: CGPoint(
+                        x: x,
+                        y: labelSize.height / 2 - cornerRadius
+                    ),
+                    labelToStrokePaddingEdge: labelToStrokePaddingEdge,
+                    labelToOuterPaddingEdge: labelToOuterPaddingEdge,
+                    labelToOuterPaddingLength: labelToOuterPaddingLength
+                )
+            case .top: fallthrough
+            default:
+                return LayoutInfo(
+                    alignment: vEdge == .leading ? .topLeading : .topTrailing,
+                    position: CGPoint(
+                        x: x,
+                        y: labelSize.height / 2 + cornerRadius
+                    ),
+                    labelToStrokePaddingEdge: labelToStrokePaddingEdge,
+                    labelToOuterPaddingEdge: labelToOuterPaddingEdge,
+                    labelToOuterPaddingLength: labelToOuterPaddingLength
+                )
             }
         }
     }
 
     public var body: some View {
         content
+            // TODO: Need to make this a passed in property
             .padding(.standardSpacing * 2)
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius)
                     .stroke(lineWidth: lineWidth)
                     .padding(lineWidth / 2)
             )
-            .reverseMask(alignment: .topLeading) {
-                titleView(includeBackground: true)
+            .reverseMask(alignment: layoutInfo.alignment) {
+                labelView(includeBackground: true)
                     .fixedSize()
             }
-            .overlay(alignment: .topLeading) {
-                titleView(includeBackground: false)
+            .overlay(alignment: layoutInfo.alignment) {
+                labelView(includeBackground: false)
                     .fixedSize()
             }
-            .padding(.top, (titleSize.height - lineWidth) / 2)
+            .padding(
+                layoutInfo.labelToOuterPaddingEdge,
+                layoutInfo.labelToOuterPaddingLength
+            )
     }
+
+    public enum PositionSet {
+        case horizontal(HorizontalEdge, HorizontalAlignment)
+        case vertical(VerticalEdge, VerticalAlignment)
+    }
+}
+
+public enum HorizontalEdge {
+    case top
+    case bottom
+}
+
+public enum VerticalEdge {
+    case leading
+    case trailing
 }
 
 public extension CUITitledGroup where Label == Text {
     init(
+        positionSet: PositionSet = .horizontal(.top, .leading),
         title: String,
         lineWidth: CGFloat = 2,
         cornerRadius: CGFloat = .cornerRadius,
         @ViewBuilder content: () -> Content
     ) {
         self.init(
+            positionSet: positionSet,
             lineWidth: lineWidth,
             cornerRadius: cornerRadius
         ) {
@@ -105,11 +230,13 @@ public extension CUITitledGroup where Label == Text {
 
 public extension CUITitledGroup where Label == EmptyView {
     init(
+        positionSet: PositionSet = .horizontal(.top, .leading),
         lineWidth: CGFloat = 2,
         cornerRadius: CGFloat = .cornerRadius,
         @ViewBuilder content: () -> Content
     ) {
         self.init(
+            positionSet: positionSet,
             lineWidth: lineWidth,
             cornerRadius: cornerRadius
         ) {
@@ -141,12 +268,156 @@ struct CUITitledGroup_Previews: PreviewProvider {
                 Text("Group with no title")
             }
 
-            CUITitledGroup(cornerRadius: 20) {
-                Circle()
-                    .foregroundColor(.yellow)
-                    .frame(width: 10, height: 10)
-            } content: {
-                Text("Group with custom label\nand larger corner radius")
+            HStack {
+                CUITitledGroup(
+                    positionSet: .horizontal(.top, .leading),
+                    cornerRadius: 20
+                ) {
+                    Circle()
+                        .foregroundColor(.yellow)
+                        .frame(width: 10, height: 10)
+                } content: {
+                    RoundedRectangle(cornerRadius: .cornerRadius)
+                        .frame(width: 60, height: 60)
+                }
+
+                CUITitledGroup(
+                    positionSet: .horizontal(.top, .center),
+                    cornerRadius: 20
+                ) {
+                    Circle()
+                        .foregroundColor(.yellow)
+                        .frame(width: 10, height: 10)
+                } content: {
+                    RoundedRectangle(cornerRadius: .cornerRadius)
+                        .frame(width: 60, height: 60)
+                }
+
+                CUITitledGroup(
+                    positionSet: .horizontal(.top, .trailing),
+                    cornerRadius: 20
+                ) {
+                    Circle()
+                        .foregroundColor(.yellow)
+                        .frame(width: 10, height: 10)
+                } content: {
+                    RoundedRectangle(cornerRadius: .cornerRadius)
+                        .frame(width: 60, height: 60)
+                }
+            }
+
+            HStack {
+                CUITitledGroup(
+                    positionSet: .horizontal(.bottom, .leading),
+                    cornerRadius: 20
+                ) {
+                    Circle()
+                        .foregroundColor(.yellow)
+                        .frame(width: 10, height: 10)
+                } content: {
+                    RoundedRectangle(cornerRadius: .cornerRadius)
+                        .frame(width: 60, height: 60)
+                }
+
+                CUITitledGroup(
+                    positionSet: .horizontal(.bottom, .center),
+                    cornerRadius: 20
+                ) {
+                    Circle()
+                        .foregroundColor(.yellow)
+                        .frame(width: 10, height: 10)
+                } content: {
+                    RoundedRectangle(cornerRadius: .cornerRadius)
+                        .frame(width: 60, height: 60)
+                }
+
+                CUITitledGroup(
+                    positionSet: .horizontal(.bottom, .trailing),
+                    cornerRadius: 20
+                ) {
+                    Circle()
+                        .foregroundColor(.yellow)
+                        .frame(width: 10, height: 10)
+                } content: {
+                    RoundedRectangle(cornerRadius: .cornerRadius)
+                        .frame(width: 60, height: 60)
+                }
+            }
+
+            HStack {
+                CUITitledGroup(
+                    positionSet: .vertical(.leading, .top),
+                    cornerRadius: 20
+                ) {
+                    Circle()
+                        .foregroundColor(.yellow)
+                        .frame(width: 10, height: 10)
+                } content: {
+                    RoundedRectangle(cornerRadius: .cornerRadius)
+                        .frame(width: 60, height: 60)
+                }
+
+                CUITitledGroup(
+                    positionSet: .vertical(.leading, .center),
+                    cornerRadius: 20
+                ) {
+                    Circle()
+                        .foregroundColor(.yellow)
+                        .frame(width: 10, height: 10)
+                } content: {
+                    RoundedRectangle(cornerRadius: .cornerRadius)
+                        .frame(width: 60, height: 60)
+                }
+
+                CUITitledGroup(
+                    positionSet: .vertical(.leading, .bottom),
+                    cornerRadius: 20
+                ) {
+                    Circle()
+                        .foregroundColor(.yellow)
+                        .frame(width: 10, height: 10)
+                } content: {
+                    RoundedRectangle(cornerRadius: .cornerRadius)
+                        .frame(width: 60, height: 60)
+                }
+            }
+
+            HStack {
+                CUITitledGroup(
+                    positionSet: .vertical(.trailing, .top),
+                    cornerRadius: 20
+                ) {
+                    Circle()
+                        .foregroundColor(.yellow)
+                        .frame(width: 10, height: 10)
+                } content: {
+                    RoundedRectangle(cornerRadius: .cornerRadius)
+                        .frame(width: 60, height: 60)
+                }
+
+                CUITitledGroup(
+                    positionSet: .vertical(.trailing, .center),
+                    cornerRadius: 20
+                ) {
+                    Circle()
+                        .foregroundColor(.yellow)
+                        .frame(width: 10, height: 10)
+                } content: {
+                    RoundedRectangle(cornerRadius: .cornerRadius)
+                        .frame(width: 60, height: 60)
+                }
+
+                CUITitledGroup(
+                    positionSet: .vertical(.trailing, .bottom),
+                    cornerRadius: 20
+                ) {
+                    Circle()
+                        .foregroundColor(.yellow)
+                        .frame(width: 10, height: 10)
+                } content: {
+                    RoundedRectangle(cornerRadius: .cornerRadius)
+                        .frame(width: 60, height: 60)
+                }
             }
         }
     }
