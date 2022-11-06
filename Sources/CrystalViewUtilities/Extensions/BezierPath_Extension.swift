@@ -94,9 +94,15 @@ extension BezierPath {
         let maxY: CGFloat = rect.size.height
         let minY: CGFloat = 0
 
+        let startingPoint: CGPoint = CGPointMake(
+            corners.contains(.bottomRight) ? cornerRadius : 0,
+            minY
+        )
+
+        move(to: startingPoint)
+
         let bottomRightCorner = CGPoint(x: maxX, y: minY)
 
-        move(to: bottomRightCorner)
 
         if corners.contains(.bottomRight) {
             let controlPoint1 = CGPoint(
@@ -187,6 +193,8 @@ extension BezierPath {
         else {
             line(to: bottomLeftCorner)
         }
+
+        close()
     }
 }
 

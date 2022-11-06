@@ -61,21 +61,45 @@ struct CUIRoundedCornerShape_Previews: PreviewProvider {
         VStack {
             CUIRoundedCornerShape(radius: 30, corners: .topLeading)
                 .foregroundColor(.yellow)
+                .overlay {
+                    Text(".topLeading")
+                        .foregroundColor(.black)
+                }
 
             CUIRoundedCornerShape(radius: 30, corners: .topTrailing)
                 .foregroundColor(.yellow)
+                .overlay {
+                    Text(".topTrailing")
+                        .foregroundColor(.black)
+                }
 
             CUIRoundedCornerShape(radius: 30, corners: .bottomLeading)
                 .foregroundColor(.yellow)
+                .overlay {
+                    Text(".bottomLeading")
+                        .foregroundColor(.black)
+                }
 
             CUIRoundedCornerShape(radius: 30, corners: .bottomTrailing)
                 .foregroundColor(.yellow)
+                .overlay {
+                    Text(".bottomTrailing")
+                        .foregroundColor(.black)
+                }
 
             CUIRoundedCornerShape(radius: 30, corners: [.topLeading, .topTrailing])
                 .foregroundColor(.yellow)
+                .overlay {
+                    Text("[.topLeading, .topTrailing]")
+                        .foregroundColor(.black)
+                }
 
             CUIRoundedCornerShape(radius: 30, corners: [.topLeading, .bottomTrailing])
                 .foregroundColor(.yellow)
+                .overlay {
+                    Text("[.topLeading, .bottomTrailing]")
+                        .foregroundColor(.black)
+                }
 
             HStack {
                 CUIRoundedCornerShape(radius: 30)
@@ -89,11 +113,20 @@ struct CUIRoundedCornerShape_Previews: PreviewProvider {
                 CUIRoundedCornerShape(radius: 20)
                     .foregroundColor(.yellow)
                     .overlay(alignment: .top, content: {
+                        // Used to check the corner radius.
                         Rectangle().frame(width: 10, height: 20)
+                            .foregroundColor(.black)
                     })
                     .frame(width:50, height: 50)
+
+                CUIRoundedCornerShape(radius: 20)
+                    .stroke(lineWidth: 4)
+                    .foregroundColor(.black)
+                    .frame(width:70, height: 70)
             }
         }
+        .padding()
+        .background(.white)
     }
 }
 

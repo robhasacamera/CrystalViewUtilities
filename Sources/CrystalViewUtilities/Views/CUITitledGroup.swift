@@ -168,6 +168,7 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
 
     public var body: some View {
         content
+            // To create this I can just combine the rounded rect shape with the masked rect, I think
             // FIXME: Need to be able to remove this, so it's only there when needed. However, this will make the text default content init more difficult as I'm not sure how to add it there since padding returns some View. I could create a custom text wrapper that makes the padding and rotation calc for me, and use that as the type. I think that would work well.
             .padding(.standardSpacing * 2)
             .overlay(
