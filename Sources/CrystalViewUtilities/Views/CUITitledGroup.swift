@@ -95,7 +95,7 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
         let strokeCutLength: CGFloat?
     }
 
-    private func horizontalLayoutInfo(_ hEdge: HorizontalEdge, _ hAlignment: HorizontalAlignment) -> CUITitledGroup<Label, Content>.LayoutInfo {
+    private func horizontalLayoutInfo(_ hEdge: CUIHorizontalEdge, _ hAlignment: HorizontalAlignment) -> CUITitledGroup<Label, Content>.LayoutInfo {
         // FIXME: This is still a weird fix, it looks like label height isn't taken into account for the overlay
         let y: CGFloat = hEdge == .top ? 0 : labelSize.height
 
@@ -134,7 +134,7 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
         )
     }
 
-    private func verticalLayoutInfo(_ vEdge: VerticalEdge, _ vAlignment: VerticalAlignment) -> CUITitledGroup<Label, Content>.LayoutInfo {
+    private func verticalLayoutInfo(_ vEdge: CUIVerticalEdge, _ vAlignment: VerticalAlignment) -> CUITitledGroup<Label, Content>.LayoutInfo {
         // FIXME: This is still a weird fix, it looks like label width isn't taken into account for the overlay
         let x: CGFloat = vEdge == .leading ? 0 : labelSize.width
 
@@ -217,16 +217,16 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
 }
 
 public enum CUIPositionSet {
-    case horizontal(HorizontalEdge, HorizontalAlignment)
-    case vertical(VerticalEdge, VerticalAlignment)
+    case horizontal(CUIHorizontalEdge, HorizontalAlignment)
+    case vertical(CUIVerticalEdge, VerticalAlignment)
 }
 
-public enum HorizontalEdge {
+public enum CUIHorizontalEdge {
     case top
     case bottom
 }
 
-public enum VerticalEdge {
+public enum CUIVerticalEdge {
     case leading
     case trailing
 }
