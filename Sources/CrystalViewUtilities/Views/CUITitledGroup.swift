@@ -306,10 +306,18 @@ struct CUITitledGroup_Previews: PreviewProvider {
                         .frame(width: 120)
                 }
             }
+            HStack {
+                CUITitledGroup(title: "Super longer title") {
+                    Text("Tall\nTest\nContent")
+                        .padding(.standardSpacing)
+                }
 
-            CUITitledGroup(title: "Super longer title") {
-                Text("Tall\nTest\nContent")
-                    .padding(.standardSpacing)
+                CUITitledGroup(
+                    positionSet: .vertical(.trailing, .top),
+                    title: "title", cornerRadius: 0) {
+                    Text("Another\nVertical\nTitle")
+                        .padding(.standardSpacing)
+                }
             }
 
             CUITitledGroup(
@@ -334,7 +342,7 @@ struct CUITitledGroup_Previews: PreviewProvider {
                         CUITitledGroup(
                             positionSet: .horizontal(.top, .leading),
                             lineWidth: 10,
-                            cornerRadius: 20
+                            cornerRadius: 5
                         ) {
                             Circle()
                                 .foregroundColor(.yellow)
@@ -345,7 +353,7 @@ struct CUITitledGroup_Previews: PreviewProvider {
 
                         CUITitledGroup(
                             positionSet: .horizontal(.top, .center),
-                            cornerRadius: 20
+                            cornerRadius: 5
                         ) {
                             Circle()
                                 .foregroundColor(.yellow)
@@ -356,7 +364,7 @@ struct CUITitledGroup_Previews: PreviewProvider {
 
                         CUITitledGroup(
                             positionSet: .horizontal(.top, .trailing),
-                            cornerRadius: 20
+                            cornerRadius: 5
                         ) {
                             Circle()
                                 .foregroundColor(.yellow)
@@ -370,7 +378,7 @@ struct CUITitledGroup_Previews: PreviewProvider {
                         CUITitledGroup(
                             positionSet: .horizontal(.bottom, .leading),
                             lineWidth: 6,
-                            cornerRadius: 20
+                            cornerRadius: 5
                         ) {
                             Circle()
                                 .foregroundColor(.yellow)
@@ -381,7 +389,7 @@ struct CUITitledGroup_Previews: PreviewProvider {
 
                         CUITitledGroup(
                             positionSet: .horizontal(.bottom, .center),
-                            cornerRadius: 20
+                            cornerRadius: 5
                         ) {
                             Circle()
                                 .foregroundColor(.yellow)
@@ -392,7 +400,7 @@ struct CUITitledGroup_Previews: PreviewProvider {
 
                         CUITitledGroup(
                             positionSet: .horizontal(.bottom, .trailing),
-                            cornerRadius: 20
+                            cornerRadius: 5
                         ) {
                             Circle()
                                 .foregroundColor(.yellow)
@@ -405,7 +413,7 @@ struct CUITitledGroup_Previews: PreviewProvider {
                     HStack {
                         CUITitledGroup(
                             positionSet: .vertical(.leading, .top),
-                            cornerRadius: 20
+                            cornerRadius: 5
                         ) {
                             Circle()
                                 .foregroundColor(.yellow)
@@ -416,7 +424,7 @@ struct CUITitledGroup_Previews: PreviewProvider {
 
                         CUITitledGroup(
                             positionSet: .vertical(.leading, .center),
-                            cornerRadius: 20
+                            cornerRadius: 5
                         ) {
                             Circle()
                                 .foregroundColor(.yellow)
@@ -428,7 +436,7 @@ struct CUITitledGroup_Previews: PreviewProvider {
                         CUITitledGroup(
                             positionSet: .vertical(.leading, .bottom),
                             lineWidth: 6,
-                            cornerRadius: 20
+                            cornerRadius: 5
                         ) {
                             Circle()
                                 .foregroundColor(.yellow)
@@ -441,7 +449,7 @@ struct CUITitledGroup_Previews: PreviewProvider {
                     HStack {
                         CUITitledGroup(
                             positionSet: .vertical(.trailing, .top),
-                            cornerRadius: 20
+                            cornerRadius: 5
                         ) {
                             Circle()
                                 .foregroundColor(.yellow)
@@ -452,7 +460,7 @@ struct CUITitledGroup_Previews: PreviewProvider {
 
                         CUITitledGroup(
                             positionSet: .vertical(.trailing, .center),
-                            cornerRadius: 20
+                            cornerRadius: 5
                         ) {
                             Circle()
                                 .foregroundColor(.yellow)
@@ -464,7 +472,7 @@ struct CUITitledGroup_Previews: PreviewProvider {
                         CUITitledGroup(
                             positionSet: .vertical(.trailing, .bottom),
                             lineWidth: 6,
-                            cornerRadius: 20
+                            cornerRadius: 5
                         ) {
                             Circle()
                                 .foregroundColor(.yellow)
