@@ -184,10 +184,17 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
 
     public var body: some View {
         content
-            // TODO: Add min width or height to make sure there is alway enough room for the label
-            // To create this I can just combine the rounded rect shape with the masked rect, I think
-            // FIXME: Need to be able to remove this, so it's only there when needed. However, this will make the text default content init more difficult as I'm not sure how to add it there since padding returns some View. I could create a custom text wrapper that makes the padding and rotation calc for me, and use that as the type. I think that would work well.
             .padding(lineWidth.half)
+            // Note: 0 is specified instead of nil as it was cauing the
+            // minHeight to be assigned as the height otherwise.
+            .frame(
+                minWidth: layoutInfo.labelToStrokePaddingEdge == .horizontal
+                    ? labelSize.width + cornerRadius * 2
+                    : 0,
+                minHeight: layoutInfo.labelToStrokePaddingEdge == .vertical
+                    ? labelSize.height + cornerRadius * 2
+                    : 0
+            )
             .clipShape(CUIRoundedCornerShape(radius: cornerRadius))
             .overlay(
                 CUIRoundedCornerShape(radius: cornerRadius)
@@ -272,7 +279,7 @@ struct CUITitledGroup_Previews: PreviewProvider {
     static var testContent: some View {
         Rectangle()
             .foregroundColor(.blue.veryTransperent)
-            .frame(width: 60, height: 60)
+            .frame(width: 70, height: 70)
     }
 
     static var previews: some View {
@@ -282,7 +289,7 @@ struct CUITitledGroup_Previews: PreviewProvider {
                     .padding(.standardSpacing)
             }
 
-            CUITitledGroup(title: "Title") {
+            CUITitledGroup(title: "Super longer title") {
                 Text("Tall\nTest\nContent")
                     .padding(.standardSpacing)
             }
