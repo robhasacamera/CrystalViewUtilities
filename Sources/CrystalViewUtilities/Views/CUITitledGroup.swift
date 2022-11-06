@@ -187,7 +187,8 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
             // TODO: Add min width or height to make sure there is alway enough room for the label
             // To create this I can just combine the rounded rect shape with the masked rect, I think
             // FIXME: Need to be able to remove this, so it's only there when needed. However, this will make the text default content init more difficult as I'm not sure how to add it there since padding returns some View. I could create a custom text wrapper that makes the padding and rotation calc for me, and use that as the type. I think that would work well.
-            .padding(.standardSpacing * 2)
+            .padding(lineWidth.half)
+            .clipShape(CUIRoundedCornerShape(radius: cornerRadius))
             .overlay(
                 CUIRoundedCornerShape(radius: cornerRadius)
                     .cutPath(
@@ -229,7 +230,7 @@ public extension CUITitledGroup where Label == Text {
         title: String,
         lineWidth: CGFloat = 2,
         cornerRadius: CGFloat = .cornerRadius,
-        sizing: SizingOption = .alignment,
+        sizing: SizingOption = .bounds,
         @ViewBuilder content: () -> Content
     ) {
         self.init(
@@ -268,180 +269,187 @@ public extension CUITitledGroup where Label == EmptyView {
 }
 
 struct CUITitledGroup_Previews: PreviewProvider {
+    static var testContent: some View {
+        Rectangle()
+            .foregroundColor(.blue.veryTransperent)
+            .frame(width: 60, height: 60)
+    }
+
     static var previews: some View {
         VStack {
             CUITitledGroup(title: "Title") {
                 Text("Test Content")
+                    .padding(.standardSpacing)
             }
 
             CUITitledGroup(title: "Title") {
                 Text("Tall\nTest\nContent")
+                    .padding(.standardSpacing)
             }
 
-            CUITitledGroup(title: "Title") {
-                Text("Test Content with a colored group")
+            CUITitledGroup(
+                positionSet: .horizontal(.top, .center),
+                title: "Much Longer Title",
+                sizing: .bounds
+            ) {
+                Text("Test Content with a colored group that is centered. Text based labels also automatically use bounds based sizing.")
                     .foregroundColor(.black)
+                    .padding(.standardSpacing)
             }
             .foregroundColor(.yellow)
 
             CUITitledGroup {
                 Text("Group with no title")
+                    .padding(.standardSpacing)
             }
 
-            HStack {
-                CUITitledGroup(
-                    positionSet: .horizontal(.top, .leading),
-                    lineWidth: 10,
-                    cornerRadius: 20
-                ) {
-                    Circle()
-                        .foregroundColor(.yellow)
-                        .frame(width: 10, height: 10)
-                } content: {
-                    RoundedRectangle(cornerRadius: .cornerRadius)
-                        .frame(width: 60, height: 60)
-                }
+            CUITitledGroup(title: "Testing position sets") {
+                VStack {
+                    HStack {
+                        CUITitledGroup(
+                            positionSet: .horizontal(.top, .leading),
+                            lineWidth: 10,
+                            cornerRadius: 20
+                        ) {
+                            Circle()
+                                .foregroundColor(.yellow)
+                                .frame(width: 10, height: 10)
+                        } content: {
+                            testContent
+                        }
 
-                CUITitledGroup(
-                    positionSet: .horizontal(.top, .center),
-                    cornerRadius: 20
-                ) {
-                    Circle()
-                        .foregroundColor(.yellow)
-                        .frame(width: 10, height: 10)
-                } content: {
-                    RoundedRectangle(cornerRadius: .cornerRadius)
-                        .frame(width: 60, height: 60)
-                }
+                        CUITitledGroup(
+                            positionSet: .horizontal(.top, .center),
+                            cornerRadius: 20
+                        ) {
+                            Circle()
+                                .foregroundColor(.yellow)
+                                .frame(width: 10, height: 10)
+                        } content: {
+                            testContent
+                        }
 
-                CUITitledGroup(
-                    positionSet: .horizontal(.top, .trailing),
-                    cornerRadius: 20
-                ) {
-                    Circle()
-                        .foregroundColor(.yellow)
-                        .frame(width: 10, height: 10)
-                } content: {
-                    RoundedRectangle(cornerRadius: .cornerRadius)
-                        .frame(width: 60, height: 60)
-                }
-            }
+                        CUITitledGroup(
+                            positionSet: .horizontal(.top, .trailing),
+                            cornerRadius: 20
+                        ) {
+                            Circle()
+                                .foregroundColor(.yellow)
+                                .frame(width: 10, height: 10)
+                        } content: {
+                            testContent
+                        }
+                    }
 
-            HStack {
-                CUITitledGroup(
-                    positionSet: .horizontal(.bottom, .leading),
-                    lineWidth: 6,
-                    cornerRadius: 20
-                ) {
-                    Circle()
-                        .foregroundColor(.yellow)
-                        .frame(width: 10, height: 10)
-                } content: {
-                    RoundedRectangle(cornerRadius: .cornerRadius)
-                        .frame(width: 60, height: 60)
-                }
+                    HStack {
+                        CUITitledGroup(
+                            positionSet: .horizontal(.bottom, .leading),
+                            lineWidth: 6,
+                            cornerRadius: 20
+                        ) {
+                            Circle()
+                                .foregroundColor(.yellow)
+                                .frame(width: 10, height: 10)
+                        } content: {
+                            testContent
+                        }
 
-                CUITitledGroup(
-                    positionSet: .horizontal(.bottom, .center),
-                    cornerRadius: 20
-                ) {
-                    Circle()
-                        .foregroundColor(.yellow)
-                        .frame(width: 10, height: 10)
-                } content: {
-                    RoundedRectangle(cornerRadius: .cornerRadius)
-                        .frame(width: 60, height: 60)
-                }
+                        CUITitledGroup(
+                            positionSet: .horizontal(.bottom, .center),
+                            cornerRadius: 20
+                        ) {
+                            Circle()
+                                .foregroundColor(.yellow)
+                                .frame(width: 10, height: 10)
+                        } content: {
+                            testContent
+                        }
 
-                CUITitledGroup(
-                    positionSet: .horizontal(.bottom, .trailing),
-                    cornerRadius: 20
-                ) {
-                    Circle()
-                        .foregroundColor(.yellow)
-                        .frame(width: 10, height: 10)
-                } content: {
-                    RoundedRectangle(cornerRadius: .cornerRadius)
-                        .frame(width: 60, height: 60)
-                }
-            }
+                        CUITitledGroup(
+                            positionSet: .horizontal(.bottom, .trailing),
+                            cornerRadius: 20
+                        ) {
+                            Circle()
+                                .foregroundColor(.yellow)
+                                .frame(width: 10, height: 10)
+                        } content: {
+                            testContent
+                        }
+                    }
 
-            HStack {
-                CUITitledGroup(
-                    positionSet: .vertical(.leading, .top),
-                    cornerRadius: 20
-                ) {
-                    Circle()
-                        .foregroundColor(.yellow)
-                        .frame(width: 10, height: 10)
-                } content: {
-                    RoundedRectangle(cornerRadius: .cornerRadius)
-                        .frame(width: 60, height: 60)
-                }
+                    HStack {
+                        CUITitledGroup(
+                            positionSet: .vertical(.leading, .top),
+                            cornerRadius: 20
+                        ) {
+                            Circle()
+                                .foregroundColor(.yellow)
+                                .frame(width: 10, height: 10)
+                        } content: {
+                            testContent
+                        }
 
-                CUITitledGroup(
-                    positionSet: .vertical(.leading, .center),
-                    cornerRadius: 20
-                ) {
-                    Circle()
-                        .foregroundColor(.yellow)
-                        .frame(width: 10, height: 10)
-                } content: {
-                    RoundedRectangle(cornerRadius: .cornerRadius)
-                        .frame(width: 60, height: 60)
-                }
+                        CUITitledGroup(
+                            positionSet: .vertical(.leading, .center),
+                            cornerRadius: 20
+                        ) {
+                            Circle()
+                                .foregroundColor(.yellow)
+                                .frame(width: 10, height: 10)
+                        } content: {
+                            testContent
+                        }
 
-                CUITitledGroup(
-                    positionSet: .vertical(.leading, .bottom),
-                    lineWidth: 6,
-                    cornerRadius: 20
-                ) {
-                    Circle()
-                        .foregroundColor(.yellow)
-                        .frame(width: 10, height: 10)
-                } content: {
-                    RoundedRectangle(cornerRadius: .cornerRadius)
-                        .frame(width: 60, height: 60)
-                }
-            }
+                        CUITitledGroup(
+                            positionSet: .vertical(.leading, .bottom),
+                            lineWidth: 6,
+                            cornerRadius: 20
+                        ) {
+                            Circle()
+                                .foregroundColor(.yellow)
+                                .frame(width: 10, height: 10)
+                        } content: {
+                            testContent
+                        }
+                    }
 
-            HStack {
-                CUITitledGroup(
-                    positionSet: .vertical(.trailing, .top),
-                    cornerRadius: 20
-                ) {
-                    Circle()
-                        .foregroundColor(.yellow)
-                        .frame(width: 10, height: 10)
-                } content: {
-                    RoundedRectangle(cornerRadius: .cornerRadius)
-                        .frame(width: 60, height: 60)
-                }
+                    HStack {
+                        CUITitledGroup(
+                            positionSet: .vertical(.trailing, .top),
+                            cornerRadius: 20
+                        ) {
+                            Circle()
+                                .foregroundColor(.yellow)
+                                .frame(width: 10, height: 10)
+                        } content: {
+                            testContent
+                        }
 
-                CUITitledGroup(
-                    positionSet: .vertical(.trailing, .center),
-                    cornerRadius: 20
-                ) {
-                    Circle()
-                        .foregroundColor(.yellow)
-                        .frame(width: 10, height: 10)
-                } content: {
-                    RoundedRectangle(cornerRadius: .cornerRadius)
-                        .frame(width: 60, height: 60)
-                }
+                        CUITitledGroup(
+                            positionSet: .vertical(.trailing, .center),
+                            cornerRadius: 20
+                        ) {
+                            Circle()
+                                .foregroundColor(.yellow)
+                                .frame(width: 10, height: 10)
+                        } content: {
+                            testContent
+                        }
 
-                CUITitledGroup(
-                    positionSet: .vertical(.trailing, .bottom),
-                    lineWidth: 6,
-                    cornerRadius: 20
-                ) {
-                    Circle()
-                        .foregroundColor(.yellow)
-                        .frame(width: 10, height: 10)
-                } content: {
-                    RoundedRectangle(cornerRadius: .cornerRadius)
-                        .frame(width: 60, height: 60)
+                        CUITitledGroup(
+                            positionSet: .vertical(.trailing, .bottom),
+                            lineWidth: 6,
+                            cornerRadius: 20
+                        ) {
+                            Circle()
+                                .foregroundColor(.yellow)
+                                .frame(width: 10, height: 10)
+                        } content: {
+                            testContent
+                        }
+                    }
                 }
+                .padding(.standardSpacing * 3)
             }
         }
     }
