@@ -27,6 +27,21 @@
 import SwiftUI
 
 public struct CUITitledGroup<Label: View, Content: View>: View {
+    /// Options for sizing ``CUITitledGroup``
+    public enum SizingOption {
+        /// Alignment based sizing will constrain the size of the view to the midline of the stroke.
+        ///
+        /// When using alignment based sizing, the stroke and label will be draw partially outside the frame of the view.
+        /// This is useful when aligning multiple ``CUITitledGroup`` views that have different stroke sizes and/or label positions.
+        case alignment
+        /// Bounds based sizing will expand the size of the view to contain the full label and stroke.
+        ///
+        /// When using bounds based sizing, the stroke and label will be draw fully inside the frame of the view.
+        /// This is useful when the ``CUITitledGroup`` is used in a layout with tight layout constraints.
+        /// This allows the view to the placed without worry that the stroke or label will be drawn over or under another view.
+        case bounds
+    }
+
     @State
     var id = UUID()
 
@@ -34,6 +49,7 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
     var lineWidth: CGFloat
     var cornerRadius: CGFloat
     var label: Label
+    var sizing: SizingOption
     var content: Content
 
     @State
@@ -43,12 +59,14 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
         positionSet: CUIPositionSet = .horizontal(.top, .leading),
         lineWidth: CGFloat = 2,
         cornerRadius: CGFloat = .cornerRadius,
+        sizing: SizingOption = .alignment,
         @ViewBuilder label: () -> Label,
         @ViewBuilder content: () -> Content
     ) {
         self.positionSet = positionSet
         self.lineWidth = lineWidth
         self.cornerRadius = cornerRadius
+        self.sizing = sizing
         self.label = label()
         self.content = content()
     }
@@ -183,11 +201,10 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
                     .fixedSize()
             }
             .padding(
-                layoutInfo.labelToOuterPaddingEdge,
-                layoutInfo.labelToOuterPaddingLength
+                sizing == .alignment ? .all : layoutInfo.labelToOuterPaddingEdge,
+                sizing == .alignment ? 0 : layoutInfo.labelToOuterPaddingLength
             )
-            // TODO: Document that outer dimensions will be affected by the linewidth, i.e. if content is 50x50 & linewidth is 2, final demensions will be 52x52 before taking in account the label. Though this would be a layout nightmare, Maybe I should reconsider or make this a separate option
-            .padding(lineWidth.half)
+            .padding(sizing == .alignment ? 0 : lineWidth.half)
     }
 }
 
@@ -212,12 +229,14 @@ public extension CUITitledGroup where Label == Text {
         title: String,
         lineWidth: CGFloat = 2,
         cornerRadius: CGFloat = .cornerRadius,
+        sizing: SizingOption = .alignment,
         @ViewBuilder content: () -> Content
     ) {
         self.init(
             positionSet: positionSet,
             lineWidth: lineWidth,
-            cornerRadius: cornerRadius
+            cornerRadius: cornerRadius,
+            sizing: sizing
         ) {
             Text(title)
                 .font(.subheadline)
@@ -232,12 +251,14 @@ public extension CUITitledGroup where Label == EmptyView {
         positionSet: CUIPositionSet = .horizontal(.top, .leading),
         lineWidth: CGFloat = 2,
         cornerRadius: CGFloat = .cornerRadius,
+        sizing: SizingOption = .alignment,
         @ViewBuilder content: () -> Content
     ) {
         self.init(
             positionSet: positionSet,
             lineWidth: lineWidth,
-            cornerRadius: cornerRadius
+            cornerRadius: cornerRadius,
+            sizing: sizing
         ) {
             EmptyView()
         } content: {
