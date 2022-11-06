@@ -96,7 +96,6 @@ extension BezierPath {
 
         let topRightCorner = CGPoint(x: maxX, y: minY)
 
-
         if roundedCorners.contains(.topRight) {
             let controlPoint1 = CGPoint(
                 x: topRightCorner.x - constrainedCornerRadius / radiusDenom,
