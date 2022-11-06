@@ -106,7 +106,7 @@ extension BezierPath {
     ) {
         let maxLength = rect.width > rect.height ? rect.width : rect.height
 
-        let constrainedCornerRadius = min(maxLength / 2, cornerRadius)
+        let constrainedCornerRadius = min(maxLength.half, cornerRadius)
 
         self.init()
 
@@ -134,16 +134,13 @@ extension BezierPath {
                 case .center:
                     line(
                         to: CGPoint(
-                            // TODO: Pull cutLength into its' own const
-                            // TODO: Pull / 2 into it's own method called half, could make it a lot easier
-                            x: rect.midX - cutLength / 2,
+                            x: rect.midX - cutLength.half,
                             y: rect.minY
                         )
                     )
 
-                    move(to: CGPoint(x: rect.midX + cutLength / 2, y: rect.minY))
+                    move(to: CGPoint(x: rect.midX + cutLength.half, y: rect.minY))
 
-                    // TODO: This is start point of the next rounded corner
                     line(to: topRightCurveStart)
                 case .trailing:
                     line(to: CGPoint(x: rect.maxX - constrainedCornerRadius - cutLength, y: rect.minY))
@@ -191,11 +188,11 @@ extension BezierPath {
                     line(
                         to: CGPoint(
                             x: rect.maxX,
-                            y: rect.midY - cutLength / 2
+                            y: rect.midY - cutLength.half
                         )
                     )
 
-                    move(to: CGPoint(x: rect.maxX, y: rect.midY + cutLength / 2))
+                    move(to: CGPoint(x: rect.maxX, y: rect.midY + cutLength.half))
 
                     line(to: bottomRightCurveStart)
                 case .bottom:
@@ -242,11 +239,11 @@ extension BezierPath {
                 switch alignment {
                 case .center:
                     line(to: CGPoint(
-                        x: rect.midX + cutLength / 2,
+                        x: rect.midX + cutLength.half,
                         y: rect.maxY
                     ))
 
-                    move(to: CGPoint(x: rect.midX - cutLength / 2, y: rect.maxY))
+                    move(to: CGPoint(x: rect.midX - cutLength.half, y: rect.maxY))
 
                     line(to: bottomLeftCurveStart)
                 case .trailing:
@@ -299,11 +296,11 @@ extension BezierPath {
                     line(
                         to: CGPoint(
                             x: rect.minX,
-                            y: rect.midY + cutLength / 2
+                            y: rect.midY + cutLength.half
                         )
                     )
 
-                    move(to: CGPoint(x: rect.minX, y: rect.midY - cutLength / 2))
+                    move(to: CGPoint(x: rect.minX, y: rect.midY - cutLength.half))
 
                     line(to: topLeftCurveStart)
                 case .bottom:

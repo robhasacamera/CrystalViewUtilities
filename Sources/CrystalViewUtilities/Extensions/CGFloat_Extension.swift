@@ -37,4 +37,14 @@ public extension CGFloat {
     ///
     /// This prevents controls from being 
     static let minInteractiveLength: CGFloat = 44
+
+    /// Returns this value divided by 2.
+    var half: CGFloat {
+        self / 2
+    }
+
+    /// Returns this value as a rounded Int
+    var int: Int {
+        Int(self.rounded())
+    }
 }
