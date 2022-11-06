@@ -112,34 +112,20 @@ extension BezierPath {
 
         let radiusDenom: CGFloat = .pi * 0.75
 
-        let maxX: CGFloat = rect.size.width
-        let midX: CGFloat = rect.size.width / 2
-        let minX: CGFloat = 0
-        let maxY: CGFloat = rect.size.height
-        let midY: CGFloat = rect.size.height / 2
-        let minY: CGFloat = 0
-
         let startingPoint: CGPoint = CGPointMake(
             roundedCorners.contains(.topRight) ? cornerRadius : 0,
-            minY
+            rect.minY
         )
+
+        let cutLength = cutLength ?? 0
+        let cutInfo = cutInfo(cutPosition: cutPositionSet)
 
         move(to: startingPoint)
 
-        let topRightCorner = CGPoint(x: maxX, y: minY)
-
-        let cutInfo = cutInfo(cutPosition: cutPositionSet)
+        let topRightCorner = CGPoint(x: rect.maxX, y: rect.minY)
+        let topRightCurveStart = CGPoint(x: rect.maxX - constrainedCornerRadius, y: rect.minY)
 
         if roundedCorners.contains(.topRight) {
-            let controlPoint1 = CGPoint(
-                x: topRightCorner.x - constrainedCornerRadius / radiusDenom,
-                y: topRightCorner.y
-            )
-            let controlPoint2 = CGPoint(
-                x: topRightCorner.x,
-                y: topRightCorner.y + constrainedCornerRadius / radiusDenom
-            )
-
             if let cutInfo,
                let alignment = cutInfo.horizontalAlignment,
                cutInfo.edge == .top
@@ -148,52 +134,54 @@ extension BezierPath {
                 case .center:
                     line(
                         to: CGPoint(
-                            x: midX - (cutLength ?? 0) / 2,
-                            y: minY
+                            // TODO: Pull cutLength into its' own const
+                            // TODO: Pull / 2 into it's own method called half, could make it a lot easier
+                            x: rect.midX - cutLength / 2,
+                            y: rect.minY
                         )
                     )
 
-                    move(to: CGPoint(x: midX + (cutLength ?? 0) / 2, y: minY))
+                    move(to: CGPoint(x: rect.midX + cutLength / 2, y: rect.minY))
 
-                    line(to: CGPoint(x: maxX - constrainedCornerRadius, y: minY))
+                    // TODO: This is start point of the next rounded corner
+                    line(to: topRightCurveStart)
                 case .trailing:
-                    line(to: CGPoint(x: maxX - constrainedCornerRadius - (cutLength ?? 0), y: minY))
-                    move(to: CGPoint(x: maxX - constrainedCornerRadius, y: minY))
+                    line(to: CGPoint(x: rect.maxX - constrainedCornerRadius - cutLength, y: rect.minY))
+                    move(to: topRightCurveStart)
                 case .leading: fallthrough
                 default:
                     move(to: CGPoint(
-                        x: startingPoint.x + (cutLength ?? 0),
+                        x: startingPoint.x + cutLength,
                         y: startingPoint.y
                     ))
 
-                    line(to: CGPoint(x: maxX - constrainedCornerRadius, y: minY))
+                    line(to: topRightCurveStart)
                 }
             } else {
-                line(to: CGPoint(x: maxX - constrainedCornerRadius, y: minY))
+                line(to: topRightCurveStart)
             }
 
+            let controlPoint1 = CGPoint(
+                x: topRightCorner.x - constrainedCornerRadius / radiusDenom,
+                y: topRightCorner.y
+            )
+            let controlPoint2 = CGPoint(
+                x: topRightCorner.x,
+                y: topRightCorner.y + constrainedCornerRadius / radiusDenom
+            )
             curve(
-                to: CGPoint(x: maxX, y: minY + constrainedCornerRadius),
+                to: CGPoint(x: rect.maxX, y: rect.minY + constrainedCornerRadius),
                 controlPoint1: controlPoint1,
                 controlPoint2: controlPoint2
             )
-        }
-        else {
+        } else {
             line(to: topRightCorner)
         }
 
-        let bottomRightCorner = CGPoint(x: maxX, y: maxY)
+        let bottomRightCorner = CGPoint(x: rect.maxX, y: rect.maxY)
+        let bottomRightCurveStart = CGPoint(x: rect.maxX, y: rect.maxY - constrainedCornerRadius)
 
         if roundedCorners.contains(.bottomRight) {
-            let controlPoint1 = CGPoint(
-                x: bottomRightCorner.x,
-                y: bottomRightCorner.y - constrainedCornerRadius / radiusDenom
-            )
-            let controlPoint2 = CGPoint(
-                x: bottomRightCorner.x - constrainedCornerRadius / radiusDenom,
-                y: bottomRightCorner.y
-            )
-
             if let cutInfo,
                let alignment = cutInfo.verticalAlignment,
                cutInfo.edge == .trailing
@@ -202,44 +190,85 @@ extension BezierPath {
                 case .center:
                     line(
                         to: CGPoint(
-                            x: maxX ,
-                            y: midY - (cutLength ?? 0) / 2
+                            x: rect.maxX,
+                            y: rect.midY - cutLength / 2
                         )
                     )
 
-                    move(to: CGPoint(x: maxX, y: midY + (cutLength ?? 0) / 2))
+                    move(to: CGPoint(x: rect.maxX, y: rect.midY + cutLength / 2))
 
-                    line(to: CGPoint(x: maxX, y: maxY - constrainedCornerRadius))
+                    line(to: bottomRightCurveStart)
                 case .bottom:
-                    line(to: CGPoint(x: maxX , y: maxY - constrainedCornerRadius - (cutLength ?? 0)))
-                    move(to: CGPoint(x: maxX, y: maxY - constrainedCornerRadius))
+                    line(to: CGPoint(x: rect.maxX, y: rect.maxY - constrainedCornerRadius - cutLength))
+                    move(to: bottomRightCurveStart)
                 case .top: fallthrough
                 default:
                     move(to: CGPoint(
-                        x: maxX,
-                        y: (cutLength ?? 0) + cornerRadius
+                        x: rect.maxX,
+                        y: cutLength + cornerRadius
                     ))
 
-                    line(to: CGPoint(x: maxX, y: maxY - constrainedCornerRadius))
+                    line(to: bottomRightCurveStart)
                 }
             } else {
-                line(to: CGPoint(x: maxX, y: maxY - constrainedCornerRadius))
+                line(to: bottomRightCurveStart)
             }
 
-            line(to: CGPoint(x: maxX, y: maxY - constrainedCornerRadius))
+            let controlPoint1 = CGPoint(
+                x: bottomRightCorner.x,
+                y: bottomRightCorner.y - constrainedCornerRadius / radiusDenom
+            )
+            let controlPoint2 = CGPoint(
+                x: bottomRightCorner.x - constrainedCornerRadius / radiusDenom,
+                y: bottomRightCorner.y
+            )
             curve(
-                to: CGPoint(x: maxX - constrainedCornerRadius, y: maxY),
+                to: CGPoint(x: rect.maxX - constrainedCornerRadius, y: rect.maxY),
                 controlPoint1: controlPoint1,
                 controlPoint2: controlPoint2
             )
-        }
-        else {
+        } else {
             line(to: bottomRightCorner)
         }
 
-        let bottomLeftCorner = CGPoint(x: minX, y: maxY)
+        let bottomLeftCorner = CGPoint(x: rect.minX, y: rect.maxY)
+        let bottomLeftCurveStart = CGPoint(x: rect.minX + constrainedCornerRadius, y: rect.maxY)
 
         if roundedCorners.contains(.bottomLeft) {
+            if let cutInfo,
+               let alignment = cutInfo.horizontalAlignment,
+               cutInfo.edge == .bottom
+            {
+                switch alignment {
+                case .center:
+                    line(to: CGPoint(
+                        x: rect.midX + cutLength / 2,
+                        y: rect.maxY
+                    ))
+
+                    move(to: CGPoint(x: rect.midX - cutLength / 2, y: rect.maxY))
+
+                    line(to: bottomLeftCurveStart)
+                case .trailing:
+                    move(to: CGPoint(
+                        x: rect.maxX - constrainedCornerRadius - cutLength,
+                        y: rect.maxY
+                    ))
+
+                    line(to: bottomLeftCurveStart)
+                case .leading: fallthrough
+                default:
+                    line(to: CGPoint(
+                        x: rect.minX + constrainedCornerRadius + cutLength,
+                        y: rect.maxY
+                    ))
+
+                    move(to: bottomLeftCurveStart)
+                }
+            } else {
+                line(to: bottomLeftCurveStart)
+            }
+
             let controlPoint1 = CGPoint(
                 x: bottomLeftCorner.x + constrainedCornerRadius / radiusDenom,
                 y: bottomLeftCorner.y
@@ -248,62 +277,19 @@ extension BezierPath {
                 x: bottomLeftCorner.x,
                 y: bottomLeftCorner.y - constrainedCornerRadius / radiusDenom
             )
-
-            if let cutInfo,
-               let alignment = cutInfo.horizontalAlignment,
-               cutInfo.edge == .bottom
-            {
-                switch alignment {
-                case .center:
-                    line(to: CGPoint(
-                        x: midX + (cutLength ?? 0) / 2,
-                        y: maxY
-                    ))
-
-                    move(to: CGPoint(x:midX - (cutLength ?? 0) / 2, y: maxY))
-
-                    line(to: CGPoint(x: minX + constrainedCornerRadius, y: maxY))
-                case .trailing:
-                    move(to: CGPoint(
-                        x: maxX - constrainedCornerRadius - (cutLength ?? 0),
-                        y: maxY
-                    ))
-
-                    line(to: CGPoint(x: minX + constrainedCornerRadius, y: maxY))
-                case .leading: fallthrough
-                default:
-                    line(to: CGPoint(
-                        x: minX + constrainedCornerRadius + (cutLength ?? 0),
-                        y: maxY
-                    ))
-
-                    move(to:CGPoint(x: minX + constrainedCornerRadius, y: maxY))
-                }
-            } else {
-                line(to: CGPoint(x: minX + constrainedCornerRadius, y: maxY))
-            }
             curve(
-                to: CGPoint(x: minX, y: maxY - constrainedCornerRadius),
+                to: CGPoint(x: rect.minX, y: rect.maxY - constrainedCornerRadius),
                 controlPoint1: controlPoint1,
                 controlPoint2: controlPoint2
             )
-        }
-        else {
+        } else {
             line(to: bottomLeftCorner)
         }
 
-        let topLeftCorner = CGPoint(x: minX, y: minY)
+        let topLeftCorner = CGPoint(x: rect.minX, y: rect.minY)
+        let topLeftCurveStart = CGPoint(x: rect.minX, y: rect.minY + constrainedCornerRadius)
 
         if roundedCorners.contains(.topLeft) {
-            let controlPoint1 = CGPoint(
-                x: topLeftCorner.x,
-                y: topLeftCorner.y + constrainedCornerRadius / radiusDenom
-            )
-            let controlPoint2 = CGPoint(
-                x: topLeftCorner.x + constrainedCornerRadius / radiusDenom,
-                y: topLeftCorner.y
-            )
-
             if let cutInfo,
                let alignment = cutInfo.verticalAlignment,
                cutInfo.edge == .leading
@@ -312,39 +298,45 @@ extension BezierPath {
                 case .center:
                     line(
                         to: CGPoint(
-                            x: minX ,
-                            y: midY + (cutLength ?? 0) / 2
+                            x: rect.minX,
+                            y: rect.midY + cutLength / 2
                         )
                     )
 
-                    move(to: CGPoint(x: minX, y: midY - (cutLength ?? 0) / 2))
+                    move(to: CGPoint(x: rect.minX, y: rect.midY - cutLength / 2))
 
-                    line(to: CGPoint(x: minX, y: minY + constrainedCornerRadius))
+                    line(to: topLeftCurveStart)
                 case .bottom:
-                    move(to: CGPoint(x: minX, y: maxY - constrainedCornerRadius - (cutLength ?? 0)))
+                    move(to: CGPoint(x: rect.minX, y: rect.maxY - constrainedCornerRadius - cutLength))
 
-                    line(to: CGPoint(x: minX, y: minY + constrainedCornerRadius))
+                    line(to: topLeftCurveStart)
                 case .top: fallthrough
                 default:
-                    line(to: CGPoint(x: minX, y: minY + constrainedCornerRadius + (cutLength ?? 0)))
+                    line(to: CGPoint(x: rect.minX, y: rect.minY + constrainedCornerRadius + cutLength))
 
                     move(to: CGPoint(
-                        x: minX,
-                        y: minY + constrainedCornerRadius
+                        x: rect.minX,
+                        y: rect.minY + constrainedCornerRadius
                     ))
-
-
                 }
             } else {
-                line(to: CGPoint(x: minX, y: minY + constrainedCornerRadius))
+                line(to: topLeftCurveStart)
             }
+
+            let controlPoint1 = CGPoint(
+                x: topLeftCorner.x,
+                y: topLeftCorner.y + constrainedCornerRadius / radiusDenom
+            )
+            let controlPoint2 = CGPoint(
+                x: topLeftCorner.x + constrainedCornerRadius / radiusDenom,
+                y: topLeftCorner.y
+            )
             curve(
-                to: CGPoint(x: minX + constrainedCornerRadius, y: minY),
+                to: CGPoint(x: rect.minX + constrainedCornerRadius, y: rect.minY),
                 controlPoint1: controlPoint1,
                 controlPoint2: controlPoint2
             )
-        }
-        else {
+        } else {
             line(to: topLeftCorner)
         }
 
