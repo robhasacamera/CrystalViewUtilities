@@ -231,7 +231,7 @@ public enum CUIVerticalEdge {
     case trailing
 }
 
-public extension CUITitledGroup where Label == Text {
+public extension CUITitledGroup where Label == CUITitledGroupTextLabel {
     init(
         positionSet: CUIPositionSet = .horizontal(.top, .leading),
         title: String,
@@ -240,14 +240,21 @@ public extension CUITitledGroup where Label == Text {
         sizing: SizingOption = .bounds,
         @ViewBuilder content: () -> Content
     ) {
+        let isRotated: Bool
+        switch positionSet {
+        case .horizontal(_, _):
+            isRotated = false
+        case .vertical(_, _):
+            isRotated = true
+        }
+
         self.init(
             positionSet: positionSet,
             lineWidth: lineWidth,
             cornerRadius: cornerRadius,
             sizing: sizing
         ) {
-            Text(title)
-                .font(.subheadline)
+            CUITitledGroupTextLabel(text: title, isRotated: isRotated)
         } content: {
             content()
         }
@@ -284,9 +291,20 @@ struct CUITitledGroup_Previews: PreviewProvider {
 
     static var previews: some View {
         VStack {
-            CUITitledGroup(title: "Title") {
-                Text("Test Content")
-                    .padding(.standardSpacing)
+            HStack {
+                CUITitledGroup(title: "Title") {
+                    Text("Test Content")
+                        .padding(.standardSpacing)
+                }
+
+                CUITitledGroup(
+                    positionSet: .vertical(.leading, .bottom),
+                    title: "Title"
+                ) {
+                    Text("The title for this is aligned vertically, at the bottom.")
+                        .padding(.standardSpacing)
+                        .frame(width: 120)
+                }
             }
 
             CUITitledGroup(title: "Super longer title") {

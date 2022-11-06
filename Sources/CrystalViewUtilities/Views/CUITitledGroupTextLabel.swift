@@ -26,7 +26,12 @@
 
 import SwiftUI
 
-struct CUITitledGroupTextLabel: View {
+public struct CUITitledGroupTextLabel: View {
+    internal init(text: String, isRotated: Bool) {
+        self.text = text
+        self.isRotated = isRotated
+    }
+
     @State
     var id = UUID()
     @State
@@ -35,9 +40,10 @@ struct CUITitledGroupTextLabel: View {
     let text: String
     let isRotated: Bool
 
-    var body: some View {
+    public var body: some View {
         CUIChildSizeReader(size: $originalSize, id: id) {
             Text(text)
+                .font(.subheadline)
                 .rotationEffect(isRotated ? Angle(degrees: 270) : Angle(degrees: 0))
         }
         .padding(.vertical, isRotated ? (originalSize.width - originalSize.height).half : 0)
