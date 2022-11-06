@@ -33,6 +33,9 @@ public struct CUIRoundedCornerShape: Shape {
     var radius: CGFloat
     var corners: CUICorner
 
+    private var cutPositionSet: CUIPositionSet? = nil
+    private var cutLength: CGFloat? = nil
+
     /// Initilizes a shape with optional corners to be rounded.
     /// - Parameters:
     ///   - radius: The radius to apply to the corners.
@@ -50,9 +53,24 @@ public struct CUIRoundedCornerShape: Shape {
             BezierPath(
                 rect: rect,
                 roundedCorners: corners.bezierCorner,
-                cornerRadius: radius
-            ).cgPath
+                cornerRadius: radius,
+                cutPositionSet: cutPositionSet,
+                cutLength: cutLength
+            )
+            .cgPath
         )
+    }
+}
+
+//
+internal extension CUIRoundedCornerShape {
+    func cutPath(positionSet: CUIPositionSet?, length: CGFloat?) -> CUIRoundedCornerShape {
+        var newSelf = self
+
+        newSelf.cutPositionSet = positionSet
+        newSelf.cutLength = length
+
+        return newSelf
     }
 }
 

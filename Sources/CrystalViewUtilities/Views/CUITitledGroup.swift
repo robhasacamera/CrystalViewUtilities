@@ -30,7 +30,7 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
     @State
     var id = UUID()
 
-    var positionSet: PositionSet
+    var positionSet: CUIPositionSet
     var lineWidth: CGFloat
     var cornerRadius: CGFloat
     var label: Label
@@ -40,7 +40,7 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
     var labelSize: CGSize = .zero
 
     public init(
-        positionSet: PositionSet = .horizontal(.top, .leading),
+        positionSet: CUIPositionSet = .horizontal(.top, .leading),
         lineWidth: CGFloat = 2,
         cornerRadius: CGFloat = .cornerRadius,
         @ViewBuilder label: () -> Label,
@@ -53,7 +53,7 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
         self.content = content()
     }
 
-    func labelView(isMask: Bool) -> some View {
+    var labelView: some View {
         // TODO: Probably don't need the group
         Group {
             CUIChildSizeReader(size: $labelSize, id: id) {
@@ -62,10 +62,7 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
                         layoutInfo.labelToStrokePaddingEdge,
                         .standardSpacing / 2
                     )
-                    .background(isMask ? .gray : .clear)
-                    .frame(width: isMask ? layoutInfo.maskWidth : nil, height: isMask ? layoutInfo.maskHeight : nil)
-                    .clipped()
-                    .position(isMask ? layoutInfo.maskPosition : layoutInfo.position)
+                    .position(layoutInfo.position)
             }
         }
     }
@@ -77,9 +74,7 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
         let labelToOuterPaddingEdge: Edge.Set
         let labelToOuterPaddingLength: CGFloat
         // TODO: Not the cleanest implementation
-        let maskWidth: CGFloat?
-        let maskHeight: CGFloat?
-        let maskPosition: CGPoint
+        let strokeCutLength: CGFloat?
     }
 
     private var layoutInfo: LayoutInfo {
@@ -89,9 +84,7 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
             let labelToOuterPaddingEdge: Edge.Set = hEdge == .top ? .top : .bottom
             let labelToOuterPaddingLength: CGFloat = (labelSize.height - lineWidth) / 2
             // FIXME: This is still a weird fix, it looks like label height isn't taken into account for the overlay
-            let y: CGFloat = lineWidth / 2 + (hEdge == .top ? 0 : labelSize.height - lineWidth)
-            let maskWidth: CGFloat? = nil
-            let maskHeight: CGFloat? = lineWidth
+            let y: CGFloat = hEdge == .top ? 0 : labelSize.height
 
             switch hAlignment {
             case .center:
@@ -104,12 +97,7 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
                     labelToStrokePaddingEdge: labelToStrokePaddingEdge,
                     labelToOuterPaddingEdge: labelToOuterPaddingEdge,
                     labelToOuterPaddingLength: labelToOuterPaddingLength,
-                    maskWidth: maskWidth,
-                    maskHeight: maskHeight,
-                    maskPosition: CGPoint(
-                        x: labelSize.width / 2,
-                        y: lineWidth / 2
-                    )
+                    strokeCutLength: labelSize.width
                 )
             case .trailing:
                 return LayoutInfo(
@@ -121,12 +109,7 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
                     labelToStrokePaddingEdge: labelToStrokePaddingEdge,
                     labelToOuterPaddingEdge: labelToOuterPaddingEdge,
                     labelToOuterPaddingLength: labelToOuterPaddingLength,
-                    maskWidth: maskWidth,
-                    maskHeight: maskHeight,
-                    maskPosition: CGPoint(
-                        x: labelSize.width / 2 - cornerRadius,
-                        y: lineWidth / 2
-                    )
+                    strokeCutLength: labelSize.width
                 )
             case .leading: fallthrough
             default:
@@ -139,12 +122,7 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
                     labelToStrokePaddingEdge: labelToStrokePaddingEdge,
                     labelToOuterPaddingEdge: labelToOuterPaddingEdge,
                     labelToOuterPaddingLength: labelToOuterPaddingLength,
-                    maskWidth: maskWidth,
-                    maskHeight: maskHeight,
-                    maskPosition: CGPoint(
-                        x: labelSize.width / 2 + cornerRadius,
-                        y: lineWidth / 2
-                    )
+                    strokeCutLength: labelSize.width
                 )
             }
         case .vertical(let vEdge, let vAlignment):
@@ -152,9 +130,7 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
             let labelToOuterPaddingEdge: Edge.Set = vEdge == .leading ? .leading : .trailing
             let labelToOuterPaddingLength: CGFloat = (labelSize.width - lineWidth) / 2
             // FIXME: This is still a weird fix, it looks like label width isn't taken into account for the overlay
-            let x: CGFloat = lineWidth / 2 + (vEdge == .leading ? 0 : labelSize.width - lineWidth)
-            let maskWidth: CGFloat? = lineWidth
-            let maskHeight: CGFloat? = nil
+            let x: CGFloat = vEdge == .leading ? 0 : labelSize.width
 
             switch vAlignment {
             case .center:
@@ -167,12 +143,7 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
                     labelToStrokePaddingEdge: labelToStrokePaddingEdge,
                     labelToOuterPaddingEdge: labelToOuterPaddingEdge,
                     labelToOuterPaddingLength: labelToOuterPaddingLength,
-                    maskWidth: maskWidth,
-                    maskHeight: maskHeight,
-                    maskPosition: CGPoint(
-                        x: lineWidth / 2,
-                        y: labelSize.height / 2
-                    )
+                    strokeCutLength: labelSize.height
                 )
             case .bottom:
                 return LayoutInfo(
@@ -184,12 +155,7 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
                     labelToStrokePaddingEdge: labelToStrokePaddingEdge,
                     labelToOuterPaddingEdge: labelToOuterPaddingEdge,
                     labelToOuterPaddingLength: labelToOuterPaddingLength,
-                    maskWidth: maskWidth,
-                    maskHeight: maskHeight,
-                    maskPosition: CGPoint(
-                        x: lineWidth / 2,
-                        y: labelSize.height / 2 - cornerRadius
-                    )
+                    strokeCutLength: labelSize.height
                 )
             case .top: fallthrough
             default:
@@ -202,12 +168,7 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
                     labelToStrokePaddingEdge: labelToStrokePaddingEdge,
                     labelToOuterPaddingEdge: labelToOuterPaddingEdge,
                     labelToOuterPaddingLength: labelToOuterPaddingLength,
-                    maskWidth: maskWidth,
-                    maskHeight: maskHeight,
-                    maskPosition: CGPoint(
-                        x: lineWidth / 2,
-                        y: labelSize.height / 2 + cornerRadius
-                    )
+                    strokeCutLength: labelSize.height
                 )
             }
         }
@@ -220,29 +181,29 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
             // FIXME: Need to be able to remove this, so it's only there when needed. However, this will make the text default content init more difficult as I'm not sure how to add it there since padding returns some View. I could create a custom text wrapper that makes the padding and rotation calc for me, and use that as the type. I think that would work well.
             .padding(.standardSpacing * 2)
             .overlay(
-                RoundedRectangle(cornerRadius: cornerRadius)
+                CUIRoundedCornerShape(radius: cornerRadius)
+                    .cutPath(
+                        positionSet: positionSet,
+                        length: layoutInfo.strokeCutLength
+                    )
                     .stroke(lineWidth: lineWidth)
-                    .padding(lineWidth / 2)
             )
-            // FIXME: Right now is something goes to the edge, it'll get partially masked to. Might need to just draw this. It'll allow me to give it rounded endcaps as well.
-            .reverseMask(alignment: layoutInfo.alignment) {
-                labelView(isMask: true)
-                    .fixedSize()
-            }
             .overlay(alignment: layoutInfo.alignment) {
-                labelView(isMask: false)
+                labelView
                     .fixedSize()
             }
             .padding(
                 layoutInfo.labelToOuterPaddingEdge,
                 layoutInfo.labelToOuterPaddingLength
             )
+        // TODO: Document that outer dimensions will be affected by the linewidth, i.e. if content is 50x50 & linewidth is 2, final demensions will be 52x52 before taking in account the label. Though this would be a layout nightmare, Maybe I should reconsider or make this a separate option
+            .padding(lineWidth / 2)
     }
+}
 
-    public enum PositionSet {
-        case horizontal(HorizontalEdge, HorizontalAlignment)
-        case vertical(VerticalEdge, VerticalAlignment)
-    }
+public enum CUIPositionSet {
+    case horizontal(HorizontalEdge, HorizontalAlignment)
+    case vertical(VerticalEdge, VerticalAlignment)
 }
 
 public enum HorizontalEdge {
@@ -257,7 +218,7 @@ public enum VerticalEdge {
 
 public extension CUITitledGroup where Label == Text {
     init(
-        positionSet: PositionSet = .horizontal(.top, .leading),
+        positionSet: CUIPositionSet = .horizontal(.top, .leading),
         title: String,
         lineWidth: CGFloat = 2,
         cornerRadius: CGFloat = .cornerRadius,
@@ -278,7 +239,7 @@ public extension CUITitledGroup where Label == Text {
 
 public extension CUITitledGroup where Label == EmptyView {
     init(
-        positionSet: PositionSet = .horizontal(.top, .leading),
+        positionSet: CUIPositionSet = .horizontal(.top, .leading),
         lineWidth: CGFloat = 2,
         cornerRadius: CGFloat = .cornerRadius,
         @ViewBuilder content: () -> Content
@@ -319,9 +280,8 @@ struct CUITitledGroup_Previews: PreviewProvider {
             HStack {
                 CUITitledGroup(
                     positionSet: .horizontal(.top, .leading),
-                    lineWidth: 6,
+                    lineWidth: 10,
                     cornerRadius: 20
-
                 ) {
                     Circle()
                         .foregroundColor(.yellow)
