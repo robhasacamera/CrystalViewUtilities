@@ -78,100 +78,84 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
     }
 
     private var layoutInfo: LayoutInfo {
+        let alignment: Alignment
+        let position: CGPoint
+        let labelToStrokePaddingEdge: Edge.Set
+        let labelToOuterPaddingEdge: Edge.Set
+        let labelToOuterPaddingLength: CGFloat
+        let strokeCutLength: CGFloat?
+
         switch positionSet {
         case .horizontal(let hEdge, let hAlignment):
-            let labelToStrokePaddingEdge: Edge.Set = .horizontal
-            let labelToOuterPaddingEdge: Edge.Set = hEdge == .top ? .top : .bottom
-            let labelToOuterPaddingLength: CGFloat = (labelSize.height - lineWidth) / 2
             // FIXME: This is still a weird fix, it looks like label height isn't taken into account for the overlay
             let y: CGFloat = hEdge == .top ? 0 : labelSize.height
 
             switch hAlignment {
             case .center:
-                return LayoutInfo(
-                    alignment: hEdge == .top ? .top : .bottom,
-                    position: CGPoint(
-                        x: labelSize.width / 2,
-                        y: y
-                    ),
-                    labelToStrokePaddingEdge: labelToStrokePaddingEdge,
-                    labelToOuterPaddingEdge: labelToOuterPaddingEdge,
-                    labelToOuterPaddingLength: labelToOuterPaddingLength,
-                    strokeCutLength: labelSize.width
+                alignment = hEdge == .top ? .top : .bottom
+                position = CGPoint(
+                    x: labelSize.width / 2,
+                    y: y
                 )
             case .trailing:
-                return LayoutInfo(
-                    alignment: hEdge == .top ? .topTrailing : .bottomTrailing,
-                    position: CGPoint(
-                        x: labelSize.width / 2 - cornerRadius,
-                        y: y
-                    ),
-                    labelToStrokePaddingEdge: labelToStrokePaddingEdge,
-                    labelToOuterPaddingEdge: labelToOuterPaddingEdge,
-                    labelToOuterPaddingLength: labelToOuterPaddingLength,
-                    strokeCutLength: labelSize.width
+                alignment = hEdge == .top ? .topTrailing : .bottomTrailing
+                position = CGPoint(
+                    x: labelSize.width / 2 - cornerRadius,
+                    y: y
                 )
             case .leading: fallthrough
             default:
-                return LayoutInfo(
-                    alignment: hEdge == .top ? .topLeading : .bottomLeading,
-                    position: CGPoint(
-                        x: labelSize.width / 2 + cornerRadius,
-                        y: y
-                    ),
-                    labelToStrokePaddingEdge: labelToStrokePaddingEdge,
-                    labelToOuterPaddingEdge: labelToOuterPaddingEdge,
-                    labelToOuterPaddingLength: labelToOuterPaddingLength,
-                    strokeCutLength: labelSize.width
+                alignment = hEdge == .top ? .topLeading : .bottomLeading
+                position = CGPoint(
+                    x: labelSize.width / 2 + cornerRadius,
+                    y: y
                 )
             }
+
+            labelToStrokePaddingEdge = .horizontal
+            labelToOuterPaddingEdge = hEdge == .top ? .top : .bottom
+            labelToOuterPaddingLength = (labelSize.height - lineWidth).half
+            strokeCutLength = labelSize.width
         case .vertical(let vEdge, let vAlignment):
-            let labelToStrokePaddingEdge: Edge.Set = .vertical
-            let labelToOuterPaddingEdge: Edge.Set = vEdge == .leading ? .leading : .trailing
-            let labelToOuterPaddingLength: CGFloat = (labelSize.width - lineWidth) / 2
             // FIXME: This is still a weird fix, it looks like label width isn't taken into account for the overlay
             let x: CGFloat = vEdge == .leading ? 0 : labelSize.width
 
             switch vAlignment {
             case .center:
-                return LayoutInfo(
-                    alignment: vEdge == .leading ? .leading : .trailing,
-                    position: CGPoint(
-                        x: x,
-                        y: labelSize.height / 2
-                    ),
-                    labelToStrokePaddingEdge: labelToStrokePaddingEdge,
-                    labelToOuterPaddingEdge: labelToOuterPaddingEdge,
-                    labelToOuterPaddingLength: labelToOuterPaddingLength,
-                    strokeCutLength: labelSize.height
+                alignment = vEdge == .leading ? .leading : .trailing
+                position = CGPoint(
+                    x: x,
+                    y: labelSize.height / 2
                 )
             case .bottom:
-                return LayoutInfo(
-                    alignment: vEdge == .leading ? .bottomLeading : .bottomTrailing,
-                    position: CGPoint(
+                alignment = vEdge == .leading ? .bottomLeading : .bottomTrailing
+                    position = CGPoint(
                         x: x,
                         y: labelSize.height / 2 - cornerRadius
-                    ),
-                    labelToStrokePaddingEdge: labelToStrokePaddingEdge,
-                    labelToOuterPaddingEdge: labelToOuterPaddingEdge,
-                    labelToOuterPaddingLength: labelToOuterPaddingLength,
-                    strokeCutLength: labelSize.height
-                )
+                    )
             case .top: fallthrough
             default:
-                return LayoutInfo(
-                    alignment: vEdge == .leading ? .topLeading : .topTrailing,
-                    position: CGPoint(
+                alignment = vEdge == .leading ? .topLeading : .topTrailing
+                    position = CGPoint(
                         x: x,
                         y: labelSize.height / 2 + cornerRadius
-                    ),
-                    labelToStrokePaddingEdge: labelToStrokePaddingEdge,
-                    labelToOuterPaddingEdge: labelToOuterPaddingEdge,
-                    labelToOuterPaddingLength: labelToOuterPaddingLength,
-                    strokeCutLength: labelSize.height
-                )
+                    )
             }
+
+            labelToStrokePaddingEdge = .vertical
+            labelToOuterPaddingEdge = vEdge == .leading ? .leading : .trailing
+            labelToOuterPaddingLength = (labelSize.width - lineWidth) / 2
+            strokeCutLength = labelSize.height
         }
+
+        return LayoutInfo(
+            alignment: alignment,
+            position: position,
+            labelToStrokePaddingEdge: labelToStrokePaddingEdge,
+            labelToOuterPaddingEdge: labelToOuterPaddingEdge,
+            labelToOuterPaddingLength: labelToOuterPaddingLength,
+            strokeCutLength: strokeCutLength
+        )
     }
 
     public var body: some View {
@@ -196,7 +180,7 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
                 layoutInfo.labelToOuterPaddingEdge,
                 layoutInfo.labelToOuterPaddingLength
             )
-        // TODO: Document that outer dimensions will be affected by the linewidth, i.e. if content is 50x50 & linewidth is 2, final demensions will be 52x52 before taking in account the label. Though this would be a layout nightmare, Maybe I should reconsider or make this a separate option
+            // TODO: Document that outer dimensions will be affected by the linewidth, i.e. if content is 50x50 & linewidth is 2, final demensions will be 52x52 before taking in account the label. Though this would be a layout nightmare, Maybe I should reconsider or make this a separate option
             .padding(lineWidth / 2)
     }
 }
