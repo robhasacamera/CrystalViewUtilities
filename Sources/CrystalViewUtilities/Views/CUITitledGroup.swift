@@ -78,17 +78,13 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
     }
 
     private var layoutInfo: LayoutInfo {
-        let alignment: Alignment
-        let position: CGPoint
-        let labelToStrokePaddingEdge: Edge.Set
-        let labelToOuterPaddingEdge: Edge.Set
-        let labelToOuterPaddingLength: CGFloat
-        let strokeCutLength: CGFloat?
-
         switch positionSet {
         case .horizontal(let hEdge, let hAlignment):
             // FIXME: This is still a weird fix, it looks like label height isn't taken into account for the overlay
             let y: CGFloat = hEdge == .top ? 0 : labelSize.height
+
+            let alignment: Alignment
+            let position: CGPoint
 
             switch hAlignment {
             case .center:
@@ -112,13 +108,20 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
                 )
             }
 
-            labelToStrokePaddingEdge = .horizontal
-            labelToOuterPaddingEdge = hEdge == .top ? .top : .bottom
-            labelToOuterPaddingLength = (labelSize.height - lineWidth).half
-            strokeCutLength = labelSize.width
+            return LayoutInfo(
+                alignment: alignment,
+                position: position,
+                labelToStrokePaddingEdge: .horizontal,
+                labelToOuterPaddingEdge: hEdge == .top ? .top : .bottom,
+                labelToOuterPaddingLength: (labelSize.height - lineWidth).half,
+                strokeCutLength: labelSize.width
+            )
         case .vertical(let vEdge, let vAlignment):
             // FIXME: This is still a weird fix, it looks like label width isn't taken into account for the overlay
             let x: CGFloat = vEdge == .leading ? 0 : labelSize.width
+
+            let alignment: Alignment
+            let position: CGPoint
 
             switch vAlignment {
             case .center:
@@ -142,20 +145,15 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
                     )
             }
 
-            labelToStrokePaddingEdge = .vertical
-            labelToOuterPaddingEdge = vEdge == .leading ? .leading : .trailing
-            labelToOuterPaddingLength = (labelSize.width - lineWidth) / 2
-            strokeCutLength = labelSize.height
+            return LayoutInfo(
+                alignment: alignment,
+                position: position,
+                labelToStrokePaddingEdge: .vertical,
+                labelToOuterPaddingEdge: vEdge == .leading ? .leading : .trailing,
+                labelToOuterPaddingLength: (labelSize.width - lineWidth) / 2,
+                strokeCutLength: labelSize.height
+            )
         }
-
-        return LayoutInfo(
-            alignment: alignment,
-            position: position,
-            labelToStrokePaddingEdge: labelToStrokePaddingEdge,
-            labelToOuterPaddingEdge: labelToOuterPaddingEdge,
-            labelToOuterPaddingLength: labelToOuterPaddingLength,
-            strokeCutLength: strokeCutLength
-        )
     }
 
     public var body: some View {
