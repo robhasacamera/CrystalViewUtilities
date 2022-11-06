@@ -55,10 +55,10 @@ struct BezierCorner: OptionSet {
 }
 
 // TODO: Make public once I confirm how it works on MacOS without SwiftUI, same for iOS.
-// Adapted from https://github.com/janheiermann/BezierPath-Corners
+/// Adds compatibility bewteen NSBezierPath and UIBezierPath.
+///
+/// Adapted from https://github.com/janheiermann/BezierPath-Corners
 extension BezierPath {
-    // Compatibility bewteen NSBezierPath and UIBezierPath
-
     #if os(iOS) || os(tvOS)
     func curve(to point: CGPoint, controlPoint1: CGPoint, controlPoint2: CGPoint) {
         addCurve(to: point, controlPoint1: controlPoint1, controlPoint2: controlPoint2)
@@ -82,36 +82,29 @@ extension BezierPath {
 
         let radiusDenom: CGFloat = .pi * 0.75
 
-        // FIXME: If both need to be flipped, then I should just unflip the calculations, though it maybe that SwiftUI applies the iOS coordinate system.
-        #if os(iOS) || os(tvOS)
-        let corners = roundedCorners.flipped()
-        #elseif os(macOS)
-        let corners = roundedCorners.flipped()
-        #endif
-
         let maxX: CGFloat = rect.size.width
         let minX: CGFloat = 0
         let maxY: CGFloat = rect.size.height
         let minY: CGFloat = 0
 
         let startingPoint: CGPoint = CGPointMake(
-            corners.contains(.bottomRight) ? cornerRadius : 0,
+            roundedCorners.contains(.topRight) ? cornerRadius : 0,
             minY
         )
 
         move(to: startingPoint)
 
-        let bottomRightCorner = CGPoint(x: maxX, y: minY)
+        let topRightCorner = CGPoint(x: maxX, y: minY)
 
 
-        if corners.contains(.bottomRight) {
+        if roundedCorners.contains(.topRight) {
             let controlPoint1 = CGPoint(
-                x: bottomRightCorner.x - constrainedCornerRadius / radiusDenom,
-                y: bottomRightCorner.y
+                x: topRightCorner.x - constrainedCornerRadius / radiusDenom,
+                y: topRightCorner.y
             )
             let controlPoint2 = CGPoint(
-                x: bottomRightCorner.x,
-                y: bottomRightCorner.y + constrainedCornerRadius / radiusDenom
+                x: topRightCorner.x,
+                y: topRightCorner.y + constrainedCornerRadius / radiusDenom
             )
 
             line(to: CGPoint(x: maxX - constrainedCornerRadius, y: minY))
@@ -122,19 +115,19 @@ extension BezierPath {
             )
         }
         else {
-            line(to: bottomRightCorner)
+            line(to: topRightCorner)
         }
 
-        let topRightCorner = CGPoint(x: maxX, y: maxY)
+        let bottomRightCorner = CGPoint(x: maxX, y: maxY)
 
-        if corners.contains(.topRight) {
+        if roundedCorners.contains(.bottomRight) {
             let controlPoint1 = CGPoint(
-                x: topRightCorner.x,
-                y: topRightCorner.y - constrainedCornerRadius / radiusDenom
+                x: bottomRightCorner.x,
+                y: bottomRightCorner.y - constrainedCornerRadius / radiusDenom
             )
             let controlPoint2 = CGPoint(
-                x: topRightCorner.x - constrainedCornerRadius / radiusDenom,
-                y: topRightCorner.y
+                x: bottomRightCorner.x - constrainedCornerRadius / radiusDenom,
+                y: bottomRightCorner.y
             )
 
             line(to: CGPoint(x: maxX, y: maxY - constrainedCornerRadius))
@@ -145,19 +138,19 @@ extension BezierPath {
             )
         }
         else {
-            line(to: topRightCorner)
+            line(to: bottomRightCorner)
         }
 
-        let topLeftCorner = CGPoint(x: minX, y: maxY)
+        let bottomLeftCorner = CGPoint(x: minX, y: maxY)
 
-        if corners.contains(.topLeft) {
+        if roundedCorners.contains(.bottomLeft) {
             let controlPoint1 = CGPoint(
-                x: topLeftCorner.x + constrainedCornerRadius / radiusDenom,
-                y: topLeftCorner.y
+                x: bottomLeftCorner.x + constrainedCornerRadius / radiusDenom,
+                y: bottomLeftCorner.y
             )
             let controlPoint2 = CGPoint(
-                x: topLeftCorner.x,
-                y: topLeftCorner.y - constrainedCornerRadius / radiusDenom
+                x: bottomLeftCorner.x,
+                y: bottomLeftCorner.y - constrainedCornerRadius / radiusDenom
             )
 
             line(to: CGPoint(x: minX + constrainedCornerRadius, y: maxY))
@@ -168,19 +161,19 @@ extension BezierPath {
             )
         }
         else {
-            line(to: topLeftCorner)
+            line(to: bottomLeftCorner)
         }
 
-        let bottomLeftCorner = CGPoint(x: minX, y: minY)
+        let topLeftCorner = CGPoint(x: minX, y: minY)
 
-        if corners.contains(.bottomLeft) {
+        if roundedCorners.contains(.topLeft) {
             let controlPoint1 = CGPoint(
-                x: bottomLeftCorner.x,
-                y: bottomLeftCorner.y + constrainedCornerRadius / radiusDenom
+                x: topLeftCorner.x,
+                y: topLeftCorner.y + constrainedCornerRadius / radiusDenom
             )
             let controlPoint2 = CGPoint(
-                x: bottomLeftCorner.x + constrainedCornerRadius / radiusDenom,
-                y: bottomLeftCorner.y
+                x: topLeftCorner.x + constrainedCornerRadius / radiusDenom,
+                y: topLeftCorner.y
             )
 
             line(to: CGPoint(x: minX, y: minY + constrainedCornerRadius))
@@ -191,7 +184,7 @@ extension BezierPath {
             )
         }
         else {
-            line(to: bottomLeftCorner)
+            line(to: topLeftCorner)
         }
 
         close()
