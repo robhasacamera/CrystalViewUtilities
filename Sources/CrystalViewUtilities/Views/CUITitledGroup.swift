@@ -203,6 +203,7 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
                         length: layoutInfo.strokeCutLength
                     )
                     .stroke(lineWidth: lineWidth)
+                    .flipsForRightToLeftLayoutDirection(true)
             )
             .overlay(alignment: layoutInfo.alignment) {
                 labelView
@@ -292,9 +293,17 @@ struct CUITitledGroup_Previews: PreviewProvider {
     static var previews: some View {
         VStack {
             HStack {
-                CUITitledGroup(title: "Title") {
-                    Text("Test Content")
-                        .padding(.standardSpacing)
+                VStack {
+                    CUITitledGroup(title: "Title") {
+                        Text("top edge, leading LTR")
+                            .padding(.standardSpacing)
+                    }
+
+                    CUITitledGroup(title: "Title") {
+                        Text("top edge, leading RTL")
+                            .padding(.standardSpacing)
+                    }
+                    .environment(\.layoutDirection, .rightToLeft)
                 }
 
                 CUITitledGroup(
