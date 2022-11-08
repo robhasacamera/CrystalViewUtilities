@@ -222,6 +222,137 @@ public enum CUIPositionSet {
     case vertical(CUIVerticalEdge, VerticalAlignment)
 }
 
+enum BezierCutPosition {
+    case topEdge(HorizontalAlignment)
+    case bottomEdge(HorizontalAlignment)
+    case leftEdge(VerticalAlignment)
+    case rightEdge(VerticalAlignment)
+
+    enum HorizontalAlignment {
+        case left
+        case center
+        case right
+    }
+
+    enum VerticalAlignment {
+        case top
+        case center
+        case bottom
+    }
+}
+
+enum PositionSet {
+    @Environment(\.layoutDirection)
+    static var layoutDirection
+
+    case topEdge(HorizontalAlignment)
+    case bottomEdge(HorizontalAlignment)
+    case leadingEdge(VerticalAlignment)
+    case trailingEdge(VerticalAlignment)
+
+    var hAlignment: HorizontalAlignment? {
+        switch self {
+        case .topEdge(let alignment):
+            return alignment
+        case .bottomEdge(let alignment):
+            return alignment
+        case .leadingEdge: fallthrough
+        case .trailingEdge:
+            return nil
+        }
+    }
+
+    var vAlignment: VerticalAlignment? {
+        switch self {
+        case .topEdge: fallthrough
+        case .bottomEdge:
+            return nil
+        case .leadingEdge(let alignment):
+            return alignment
+        case .trailingEdge(let alignment):
+            return alignment
+        }
+    }
+
+    var edge: Edge {
+        switch self {
+        case .topEdge:
+            return .top
+        case .bottomEdge:
+            return .bottom
+        case .leadingEdge:
+            return .leading
+        case .trailingEdge:
+            return .trailing
+        }
+    }
+
+    var axis: Axis {
+        switch self {
+        case .topEdge: fallthrough
+        case .bottomEdge:
+            return .horizontal
+        case .leadingEdge: fallthrough
+        case .trailingEdge:
+            return .vertical
+        }
+    }
+
+    var hCutAlignment: BezierCutPosition.HorizontalAlignment? {
+        guard let hAlignment else {
+            return nil
+        }
+
+        switch hAlignment {
+        case .leading:
+            return PositionSet.layoutDirection == .rightToLeft ? .right : .left
+        case .center:
+            return .center
+        case .trailing:
+            return PositionSet.layoutDirection == .rightToLeft ? .left : .right
+        default:
+            return nil
+        }
+    }
+
+    var vCutAlignment: BezierCutPosition.VerticalAlignment? {
+        guard let vAlignment else {
+            return nil
+        }
+
+        switch vAlignment {
+        case .top:
+            return .top
+        case .center:
+            return .center
+        case .bottom:
+            return .bottom
+        default:
+            return nil
+        }
+    }
+
+    var cutPosition: BezierCutPosition {
+        let hCutAlignment = hCutAlignment ?? .center
+        let vCutAlignment = vCutAlignment ?? .center
+
+        switch self {
+        case .topEdge:
+            return .topEdge(hCutAlignment)
+        case .bottomEdge:
+            return .bottomEdge(hCutAlignment)
+        case .leadingEdge:
+            return Self.layoutDirection == .rightToLeft
+                ? .rightEdge(vCutAlignment)
+                : .leftEdge(vCutAlignment)
+        case .trailingEdge:
+            return Self.layoutDirection == .rightToLeft
+                ? .leftEdge(vCutAlignment)
+                : .rightEdge(vCutAlignment)
+        }
+    }
+}
+
 public enum CUIHorizontalEdge {
     case top
     case bottom
@@ -243,9 +374,9 @@ public extension CUITitledGroup where Label == CUITitledGroupTextLabel {
     ) {
         let isRotated: Bool
         switch positionSet {
-        case .horizontal(_, _):
+        case .horizontal:
             isRotated = false
-        case .vertical(_, _):
+        case .vertical:
             isRotated = true
         }
 
@@ -323,7 +454,8 @@ struct CUITitledGroup_Previews: PreviewProvider {
 
                 CUITitledGroup(
                     positionSet: .vertical(.trailing, .top),
-                    title: "title", cornerRadius: 0) {
+                    title: "title", cornerRadius: 0
+                ) {
                     Text("Another\nVertical\nTitle")
                         .padding(.standardSpacing)
                 }
