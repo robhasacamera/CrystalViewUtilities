@@ -72,16 +72,13 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
     }
 
     var labelView: some View {
-        // TODO: Probably don't need the group
-        Group {
-            CUIChildSizeReader(size: $labelSize, id: id) {
-                label
-                    .padding(
-                        layoutInfo.labelToStrokePaddingEdge,
-                        .standardSpacing.half
-                    )
-                    .position(layoutInfo.position)
-            }
+        CUIChildSizeReader(size: $labelSize, id: id) {
+            label
+                .padding(
+                    layoutInfo.labelToStrokePaddingEdge,
+                    .standardSpacing.half
+                )
+                .position(layoutInfo.position)
         }
     }
 
@@ -130,7 +127,7 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
             labelToStrokePaddingEdge: .horizontal,
             labelToOuterPaddingEdge: hEdge == .top ? .top : .bottom,
             labelToOuterPaddingLength: (labelSize.height - lineWidth).half,
-            strokeCutLength: labelSize.width
+            strokeCutLength: label is EmptyView ? 0 : labelSize.width
         )
     }
 
@@ -169,7 +166,7 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
             labelToStrokePaddingEdge: .vertical,
             labelToOuterPaddingEdge: vEdge == .leading ? .leading : .trailing,
             labelToOuterPaddingLength: (labelSize.width - lineWidth).half,
-            strokeCutLength: labelSize.height
+            strokeCutLength: label is EmptyView ? 0 : labelSize.height
         )
     }
 
