@@ -90,42 +90,6 @@ extension BezierPath {
     }
     #endif
 
-    // This is very messy
-    private struct CutInfo {
-        let edge: Edge
-        var horizontalAlignment: HorizontalAlignment? = nil
-        var verticalAlignment: VerticalAlignment? = nil
-    }
-
-    private func cutInfo(cutPosition: CUIPositionSet?) -> CutInfo? {
-        guard let cutPosition else {
-            return nil
-        }
-
-        switch cutPosition {
-        case .topEdge(let alignment):
-            return CutInfo(
-                edge: .top,
-                horizontalAlignment: alignment
-            )
-        case .bottomEdge(let alignment):
-            return CutInfo(
-                edge: .bottom,
-                horizontalAlignment: alignment
-            )
-        case .leadingEdge(let alignment):
-            return CutInfo(
-                edge: .leading,
-                verticalAlignment: alignment
-            )
-        case .trailingEdge(let alignment):
-            return CutInfo(
-                edge: .trailing,
-                verticalAlignment: alignment
-            )
-        }
-    }
-
     convenience init(
         rect: CGRect,
         roundedCorners: BezierCorner,
@@ -147,7 +111,6 @@ extension BezierPath {
         )
 
         let cutLength = cutLength ?? 0
-        let cutInfo = cutInfo(cutPosition: cutPositionSet)
 
         move(to: startingPoint)
 
@@ -155,9 +118,9 @@ extension BezierPath {
         let topRightCurveStart = CGPoint(x: rect.maxX - constrainedCornerRadius, y: rect.minY)
 
         if roundedCorners.contains(.topRight) {
-            if let cutInfo,
-               let alignment = cutInfo.horizontalAlignment,
-               cutInfo.edge == .top
+            if let cutPositionSet,
+               let alignment = cutPositionSet.hAlignment,
+               cutPositionSet.edge == .top
             {
                 switch alignment {
                 case .center:
@@ -208,9 +171,9 @@ extension BezierPath {
         let bottomRightCurveStart = CGPoint(x: rect.maxX, y: rect.maxY - constrainedCornerRadius)
 
         if roundedCorners.contains(.bottomRight) {
-            if let cutInfo,
-               let alignment = cutInfo.verticalAlignment,
-               cutInfo.edge == .trailing
+            if let cutPositionSet,
+               let alignment = cutPositionSet.vAlignment,
+               cutPositionSet.edge == .trailing
             {
                 switch alignment {
                 case .center:
@@ -261,9 +224,9 @@ extension BezierPath {
         let bottomLeftCurveStart = CGPoint(x: rect.minX + constrainedCornerRadius, y: rect.maxY)
 
         if roundedCorners.contains(.bottomLeft) {
-            if let cutInfo,
-               let alignment = cutInfo.horizontalAlignment,
-               cutInfo.edge == .bottom
+            if let cutPositionSet,
+               let alignment = cutPositionSet.hAlignment,
+               cutPositionSet.edge == .bottom
             {
                 switch alignment {
                 case .center:
@@ -316,9 +279,9 @@ extension BezierPath {
         let topLeftCurveStart = CGPoint(x: rect.minX, y: rect.minY + constrainedCornerRadius)
 
         if roundedCorners.contains(.topLeft) {
-            if let cutInfo,
-               let alignment = cutInfo.verticalAlignment,
-               cutInfo.edge == .leading
+            if let cutPositionSet,
+               let alignment = cutPositionSet.vAlignment,
+               cutPositionSet.edge == .leading
             {
                 switch alignment {
                 case .center:
@@ -366,7 +329,7 @@ extension BezierPath {
             line(to: topLeftCorner)
         }
 
-        if cutInfo == nil {
+        if cutPositionSet == nil {
             close()
         }
     }
