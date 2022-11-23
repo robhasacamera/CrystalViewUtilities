@@ -189,7 +189,7 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
             // Note: 0 is specified instead of nil as it was cauing the
             // minHeight to be assigned as the height otherwise.
             .frame(
-                minWidth: layoutInfo.labelToStrokePaddingEdge == .horizontal
+                minWidth: positionSet.axis == .horizontal
                     ? labelSize.width + cornerRadius * 2
                     : 0,
                 minHeight: layoutInfo.labelToStrokePaddingEdge == .vertical
@@ -218,31 +218,12 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
     }
 }
 
-enum BezierCutPosition {
-    case topEdge(HorizontalAlignment)
-    case bottomEdge(HorizontalAlignment)
-    case leftEdge(VerticalAlignment)
-    case rightEdge(VerticalAlignment)
-
-    enum HorizontalAlignment {
-        case left
-        case center
-        case right
-    }
-
-    enum VerticalAlignment {
-        case top
-        case center
-        case bottom
-    }
-}
-
-public enum CUIHorizontalEdge {
+fileprivate enum CUIHorizontalEdge {
     case top
     case bottom
 }
 
-public enum CUIVerticalEdge {
+fileprivate enum CUIVerticalEdge {
     case leading
     case trailing
 }
