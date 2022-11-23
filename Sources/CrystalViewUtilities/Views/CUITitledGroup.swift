@@ -56,7 +56,7 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
     var labelSize: CGSize = .zero
 
     public init(
-        positionSet: CUIPositionSet = .horizontal(.top, .leading),
+        positionSet: CUIPositionSet = .topEdge(.leading),
         lineWidth: CGFloat = 2,
         cornerRadius: CGFloat = .cornerRadius,
         sizing: SizingOption = .alignment,
@@ -172,10 +172,14 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
 
     private var layoutInfo: LayoutInfo {
         switch positionSet {
-        case .horizontal(let hEdge, let hAlignment):
-            return horizontalLayoutInfo(hEdge, hAlignment)
-        case .vertical(let vEdge, let vAlignment):
-            return verticalLayoutInfo(vEdge, vAlignment)
+        case .topEdge(let alignment):
+            return horizontalLayoutInfo(.top, alignment)
+        case .bottomEdge(let alignment):
+            return horizontalLayoutInfo(.bottom, alignment)
+        case .leadingEdge(let alignment):
+            return verticalLayoutInfo(.leading, alignment)
+        case .trailingEdge(let alignment):
+            return verticalLayoutInfo(.trailing, alignment)
         }
     }
 
@@ -214,11 +218,6 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
     }
 }
 
-public enum CUIPositionSet {
-    case horizontal(CUIHorizontalEdge, HorizontalAlignment)
-    case vertical(CUIVerticalEdge, VerticalAlignment)
-}
-
 enum BezierCutPosition {
     case topEdge(HorizontalAlignment)
     case bottomEdge(HorizontalAlignment)
@@ -238,118 +237,6 @@ enum BezierCutPosition {
     }
 }
 
-enum PositionSet {
-    @Environment(\.layoutDirection)
-    static var layoutDirection
-
-    case topEdge(HorizontalAlignment)
-    case bottomEdge(HorizontalAlignment)
-    case leadingEdge(VerticalAlignment)
-    case trailingEdge(VerticalAlignment)
-
-    var hAlignment: HorizontalAlignment? {
-        switch self {
-        case .topEdge(let alignment):
-            return alignment
-        case .bottomEdge(let alignment):
-            return alignment
-        case .leadingEdge: fallthrough
-        case .trailingEdge:
-            return nil
-        }
-    }
-
-    var vAlignment: VerticalAlignment? {
-        switch self {
-        case .topEdge: fallthrough
-        case .bottomEdge:
-            return nil
-        case .leadingEdge(let alignment):
-            return alignment
-        case .trailingEdge(let alignment):
-            return alignment
-        }
-    }
-
-    var edge: Edge {
-        switch self {
-        case .topEdge:
-            return .top
-        case .bottomEdge:
-            return .bottom
-        case .leadingEdge:
-            return .leading
-        case .trailingEdge:
-            return .trailing
-        }
-    }
-
-    var axis: Axis {
-        switch self {
-        case .topEdge: fallthrough
-        case .bottomEdge:
-            return .horizontal
-        case .leadingEdge: fallthrough
-        case .trailingEdge:
-            return .vertical
-        }
-    }
-
-    var hCutAlignment: BezierCutPosition.HorizontalAlignment? {
-        guard let hAlignment else {
-            return nil
-        }
-
-        switch hAlignment {
-        case .leading:
-            return PositionSet.layoutDirection == .rightToLeft ? .right : .left
-        case .center:
-            return .center
-        case .trailing:
-            return PositionSet.layoutDirection == .rightToLeft ? .left : .right
-        default:
-            return nil
-        }
-    }
-
-    var vCutAlignment: BezierCutPosition.VerticalAlignment? {
-        guard let vAlignment else {
-            return nil
-        }
-
-        switch vAlignment {
-        case .top:
-            return .top
-        case .center:
-            return .center
-        case .bottom:
-            return .bottom
-        default:
-            return nil
-        }
-    }
-
-    var cutPosition: BezierCutPosition {
-        let hCutAlignment = hCutAlignment ?? .center
-        let vCutAlignment = vCutAlignment ?? .center
-
-        switch self {
-        case .topEdge:
-            return .topEdge(hCutAlignment)
-        case .bottomEdge:
-            return .bottomEdge(hCutAlignment)
-        case .leadingEdge:
-            return Self.layoutDirection == .rightToLeft
-                ? .rightEdge(vCutAlignment)
-                : .leftEdge(vCutAlignment)
-        case .trailingEdge:
-            return Self.layoutDirection == .rightToLeft
-                ? .leftEdge(vCutAlignment)
-                : .rightEdge(vCutAlignment)
-        }
-    }
-}
-
 public enum CUIHorizontalEdge {
     case top
     case bottom
@@ -362,20 +249,14 @@ public enum CUIVerticalEdge {
 
 public extension CUITitledGroup where Label == CUITitledGroupTextLabel {
     init(
-        positionSet: CUIPositionSet = .horizontal(.top, .leading),
+        positionSet: CUIPositionSet = .topEdge(.leading),
         title: String,
         lineWidth: CGFloat = 2,
         cornerRadius: CGFloat = .cornerRadius,
         sizing: SizingOption = .bounds,
         @ViewBuilder content: () -> Content
     ) {
-        let isRotated: Bool
-        switch positionSet {
-        case .horizontal:
-            isRotated = false
-        case .vertical:
-            isRotated = true
-        }
+        let isRotated = positionSet.isVertical
 
         self.init(
             positionSet: positionSet,
@@ -392,7 +273,7 @@ public extension CUITitledGroup where Label == CUITitledGroupTextLabel {
 
 public extension CUITitledGroup where Label == EmptyView {
     init(
-        positionSet: CUIPositionSet = .horizontal(.top, .leading),
+        positionSet: CUIPositionSet = .topEdge(.leading),
         lineWidth: CGFloat = 2,
         cornerRadius: CGFloat = .cornerRadius,
         sizing: SizingOption = .alignment,
@@ -435,7 +316,7 @@ struct CUITitledGroup_Previews: PreviewProvider {
                 }
 
                 CUITitledGroup(
-                    positionSet: .vertical(.leading, .bottom),
+                    positionSet: .leadingEdge(.bottom),
                     title: "Title"
                 ) {
                     Text("The title for this is aligned vertically, at the bottom.")
@@ -450,7 +331,7 @@ struct CUITitledGroup_Previews: PreviewProvider {
                 }
 
                 CUITitledGroup(
-                    positionSet: .vertical(.trailing, .top),
+                    positionSet: .leadingEdge(.top),
                     title: "title", cornerRadius: 0
                 ) {
                     Text("Another\nVertical\nTitle")
@@ -459,7 +340,7 @@ struct CUITitledGroup_Previews: PreviewProvider {
             }
 
             CUITitledGroup(
-                positionSet: .horizontal(.top, .center),
+                positionSet: .topEdge(.center),
                 title: "Much Longer Title",
                 sizing: .bounds
             ) {
@@ -478,7 +359,7 @@ struct CUITitledGroup_Previews: PreviewProvider {
                 VStack {
                     HStack {
                         CUITitledGroup(
-                            positionSet: .horizontal(.top, .leading),
+                            positionSet: .topEdge(.leading),
                             lineWidth: 10,
                             cornerRadius: 5
                         ) {
@@ -490,7 +371,7 @@ struct CUITitledGroup_Previews: PreviewProvider {
                         }
 
                         CUITitledGroup(
-                            positionSet: .horizontal(.top, .center),
+                            positionSet: .topEdge(.center),
                             cornerRadius: 5
                         ) {
                             Circle()
@@ -501,7 +382,7 @@ struct CUITitledGroup_Previews: PreviewProvider {
                         }
 
                         CUITitledGroup(
-                            positionSet: .horizontal(.top, .trailing),
+                            positionSet: .topEdge(.trailing),
                             cornerRadius: 5
                         ) {
                             Circle()
@@ -514,7 +395,7 @@ struct CUITitledGroup_Previews: PreviewProvider {
 
                     HStack {
                         CUITitledGroup(
-                            positionSet: .horizontal(.bottom, .leading),
+                            positionSet: .bottomEdge(.leading),
                             lineWidth: 6,
                             cornerRadius: 5
                         ) {
@@ -526,7 +407,7 @@ struct CUITitledGroup_Previews: PreviewProvider {
                         }
 
                         CUITitledGroup(
-                            positionSet: .horizontal(.bottom, .center),
+                            positionSet: .bottomEdge(.center),
                             cornerRadius: 5
                         ) {
                             Circle()
@@ -537,7 +418,7 @@ struct CUITitledGroup_Previews: PreviewProvider {
                         }
 
                         CUITitledGroup(
-                            positionSet: .horizontal(.bottom, .trailing),
+                            positionSet: .bottomEdge(.trailing),
                             cornerRadius: 5
                         ) {
                             Circle()
@@ -550,7 +431,7 @@ struct CUITitledGroup_Previews: PreviewProvider {
 
                     HStack {
                         CUITitledGroup(
-                            positionSet: .vertical(.leading, .top),
+                            positionSet: .leadingEdge(.top),
                             cornerRadius: 5
                         ) {
                             Circle()
@@ -561,7 +442,7 @@ struct CUITitledGroup_Previews: PreviewProvider {
                         }
 
                         CUITitledGroup(
-                            positionSet: .vertical(.leading, .center),
+                            positionSet: .leadingEdge(.center),
                             cornerRadius: 5
                         ) {
                             Circle()
@@ -572,7 +453,7 @@ struct CUITitledGroup_Previews: PreviewProvider {
                         }
 
                         CUITitledGroup(
-                            positionSet: .vertical(.leading, .bottom),
+                            positionSet: .leadingEdge(.bottom),
                             lineWidth: 6,
                             cornerRadius: 5
                         ) {
@@ -586,7 +467,7 @@ struct CUITitledGroup_Previews: PreviewProvider {
 
                     HStack {
                         CUITitledGroup(
-                            positionSet: .vertical(.trailing, .top),
+                            positionSet: .trailingEdge(.top),
                             cornerRadius: 5
                         ) {
                             Circle()
@@ -597,7 +478,7 @@ struct CUITitledGroup_Previews: PreviewProvider {
                         }
 
                         CUITitledGroup(
-                            positionSet: .vertical(.trailing, .center),
+                            positionSet: .trailingEdge(.center),
                             cornerRadius: 5
                         ) {
                             Circle()
@@ -608,7 +489,7 @@ struct CUITitledGroup_Previews: PreviewProvider {
                         }
 
                         CUITitledGroup(
-                            positionSet: .vertical(.trailing, .bottom),
+                            positionSet: .trailingEdge(.bottom),
                             lineWidth: 6,
                             cornerRadius: 5
                         ) {

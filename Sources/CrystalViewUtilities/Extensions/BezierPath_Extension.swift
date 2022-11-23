@@ -103,14 +103,24 @@ extension BezierPath {
         }
 
         switch cutPosition {
-        case .horizontal(let edge, let alignment):
+        case .topEdge(let alignment):
             return CutInfo(
-                edge: edge == .top ? .top : .bottom,
+                edge: .top,
                 horizontalAlignment: alignment
             )
-        case .vertical(let edge, let alignment):
+        case .bottomEdge(let alignment):
             return CutInfo(
-                edge: edge == .leading ? .leading : .trailing,
+                edge: .bottom,
+                horizontalAlignment: alignment
+            )
+        case .leadingEdge(let alignment):
+            return CutInfo(
+                edge: .leading,
+                verticalAlignment: alignment
+            )
+        case .trailingEdge(let alignment):
+            return CutInfo(
+                edge: .trailing,
                 verticalAlignment: alignment
             )
         }
