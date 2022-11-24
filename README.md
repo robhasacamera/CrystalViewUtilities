@@ -21,6 +21,7 @@ This package will be added to as more useful utilities are discovered while buil
 
 1. Create snapshot and unit tests.
 2. Create scripts below to automatic standard processes.
+3. Create a demo app.
 
 ### Script that automatically update DocC articles
 1. Automatically creates or updates documentation files for any `_Extension` file.
