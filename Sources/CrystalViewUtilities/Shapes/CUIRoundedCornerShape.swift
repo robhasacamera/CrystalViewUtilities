@@ -50,7 +50,7 @@ public struct CUIRoundedCornerShape: Shape {
 
     public func path(in rect: CGRect) -> Path {
         Path(
-            BezierPath(
+            CUIBezierPath(
                 rect: rect,
                 roundedCorners: corners.bezierCorner,
                 cornerRadius: radius,

@@ -29,13 +29,13 @@ import SwiftUI
 #if os(iOS) || os(tvOS)
 import UIKit
 
-public typealias BezierPath = UIBezierPath
+public typealias CUIBezierPath = UIBezierPath
 
 #elseif os(macOS)
 import AppKit
 import Cocoa
 
-public typealias BezierPath = NSBezierPath
+public typealias CUIBezierPath = NSBezierPath
 #endif
 
 struct BezierCorner: OptionSet {
@@ -79,7 +79,7 @@ struct BezierCorner: OptionSet {
 /// Adds compatibility bewteen NSBezierPath and UIBezierPath.
 ///
 /// Adapted from https://github.com/janheiermann/BezierPath-Corners
-extension BezierPath {
+extension CUIBezierPath {
     #if os(iOS) || os(tvOS)
     func curve(to point: CGPoint, controlPoint1: CGPoint, controlPoint2: CGPoint) {
         addCurve(to: point, controlPoint1: controlPoint1, controlPoint2: controlPoint2)

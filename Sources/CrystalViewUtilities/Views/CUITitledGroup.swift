@@ -26,6 +26,12 @@
 
 import SwiftUI
 
+/// A view that visually groups the child view provided to it.
+///
+/// This view adds a border around the provided view to visually group the views belonging to the view.
+/// A label can be added and positioned using ``CUIPositionSet``. The provided views are clipped
+/// to remain within the border.
+///
 public struct CUITitledGroup<Label: View, Content: View>: View {
     /// Options for sizing ``CUITitledGroup``
     public enum SizingOption {
@@ -55,6 +61,14 @@ public struct CUITitledGroup<Label: View, Content: View>: View {
     @State
     var labelSize: CGSize = .zero
 
+    /// Creates a titled group for the view provided.
+    /// - Parameters:
+    ///   - positionSet: The position for the group's label.
+    ///   - lineWidth: The width of the border around the view.
+    ///   - cornerRadius: The radius for the corners of the border.
+    ///   - sizing: Controls the constrained size of the view.
+    ///   - label: The label that will be inserted along the border of the view..
+    ///   - content: The content to diplay within the titled group.
     public init(
         positionSet: CUIPositionSet = .topEdge(.leading),
         lineWidth: CGFloat = 2,
@@ -229,6 +243,16 @@ fileprivate enum CUIVerticalEdge {
 }
 
 public extension CUITitledGroup where Label == CUITitledGroupTextLabel {
+    /// Creates a titled group for the view provided using the provided text for the label.
+    ///
+    /// When the label is positioned on the leading or trailing edge of the view, the label will automatically be rotated 90 degrees
+    /// - Parameters:
+    ///   - positionSet: The position for the group's label.
+    ///   - title: The text to display in the label
+    ///   - lineWidth: The width of the border around the view.
+    ///   - cornerRadius: The radius for the corners of the border.
+    ///   - sizing: Controls the constrained size of the view.
+    ///   - content: The content to diplay within the titled group.
     init(
         positionSet: CUIPositionSet = .topEdge(.leading),
         title: String,
@@ -253,6 +277,13 @@ public extension CUITitledGroup where Label == CUITitledGroupTextLabel {
 }
 
 public extension CUITitledGroup where Label == EmptyView {
+    /// Creates a titled group for the view provided that doesn't have a label.
+    /// - Parameters:
+    ///   - positionSet: The position for the group's label.
+    ///   - lineWidth: The width of the border around the view.
+    ///   - cornerRadius: The radius for the corners of the border.
+    ///   - sizing: Controls the constrained size of the view.
+    ///   - content: The content to diplay within the titled group.
     init(
         positionSet: CUIPositionSet = .topEdge(.leading),
         lineWidth: CGFloat = 2,

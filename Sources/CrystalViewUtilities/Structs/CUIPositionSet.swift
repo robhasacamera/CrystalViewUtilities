@@ -26,6 +26,9 @@
 
 import SwiftUI
 
+/// Describe a position along the edge of a rectangle.
+///
+/// The position is described using a combination of an edge and the alignment along that edge.
 public enum CUIPositionSet {
     @Environment(\.layoutDirection)
     static var layoutDirection

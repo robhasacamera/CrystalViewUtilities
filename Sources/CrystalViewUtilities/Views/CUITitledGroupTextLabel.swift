@@ -26,6 +26,9 @@
 
 import SwiftUI
 
+/// A text label that can be rotated by 90 degrees.
+///
+/// This is used by ``CUITitledGroup`` when displaying a rotated label along the leading or trailing edge.
 public struct CUITitledGroupTextLabel: View {
     internal init(text: String, isRotated: Bool) {
         self.text = text
