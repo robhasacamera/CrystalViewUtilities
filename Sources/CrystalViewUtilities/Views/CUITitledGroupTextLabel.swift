@@ -24,27 +24,42 @@
 // SOFTWARE.
 //
 
-import CoreGraphics
+import SwiftUI
 
-public extension CGFloat {
-    // MARK: - Standard values
-
-    /// Standard spacing used throughout Crystal UI.
-    static let standardSpacing: CGFloat = 8
-    /// Default corner radius used for menus and controls.
-    static let cornerRadius: CGFloat = 10
-    /// The minimum length used for any controls that are interactive.
-    ///
-    /// This prevents controls from being 
-    static let minInteractiveLength: CGFloat = 44
-
-    /// Returns this value divided by 2.
-    var half: CGFloat {
-        self / 2
+/// A text label that can be rotated by 90 degrees.
+///
+/// This is used by ``CUITitledGroup`` when displaying a rotated label along the leading or trailing edge.
+public struct CUITitledGroupTextLabel: View {
+    internal init(text: String, isRotated: Bool) {
+        self.text = text
+        self.isRotated = isRotated
     }
 
-    /// Returns this value as a rounded Int
-    var int: Int {
-        Int(self.rounded())
+    @State
+    var id = UUID()
+    @State
+    var originalSize: CGSize = .zero
+
+    let text: String
+    let isRotated: Bool
+
+    public var body: some View {
+        CUIChildSizeReader(size: $originalSize, id: id) {
+            Text(text)
+                .font(.subheadline)
+                .rotationEffect(isRotated ? Angle(degrees: 270) : Angle(degrees: 0))
+        }
+        .padding(.vertical, isRotated ? (originalSize.width - originalSize.height).half : 0)
+        .padding(.horizontal, isRotated ? (originalSize.height - originalSize.width).half : 0)
+    }
+}
+
+struct CUITitledGroupTextLabel_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack {
+            CUITitledGroupTextLabel(text:"test label", isRotated: true)
+
+            CUITitledGroupTextLabel(text:"test label", isRotated: false)
+        }
     }
 }

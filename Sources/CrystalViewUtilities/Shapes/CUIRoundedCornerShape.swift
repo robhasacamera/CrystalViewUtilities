@@ -31,7 +31,10 @@ import SwiftUI
 /// This was adapted from [Mojtaba Hosseini](https://stackoverflow.com/users/5623035/mojtaba-hosseini)'s [answer on Stack Overflow](https://stackoverflow.com/a/58606176/898984).
 public struct CUIRoundedCornerShape: Shape {
     var radius: CGFloat
-    var corners: Corner
+    var corners: CUICorner
+
+    private var cutPositionSet: CUIPositionSet? = nil
+    private var cutLength: CGFloat? = nil
 
     /// Initilizes a shape with optional corners to be rounded.
     /// - Parameters:
@@ -39,7 +42,7 @@ public struct CUIRoundedCornerShape: Shape {
     ///   - corners: The corners to round.
     public init(
         radius: CGFloat = .cornerRadius,
-        corners: Corner = .allCorners
+        corners: CUICorner = .allCorners
     ) {
         self.radius = radius
         self.corners = corners
@@ -47,81 +50,27 @@ public struct CUIRoundedCornerShape: Shape {
 
     public func path(in rect: CGRect) -> Path {
         Path(
-            BezierPath(
+            CUIBezierPath(
                 rect: rect,
                 roundedCorners: corners.bezierCorner,
-                cornerRadius: radius
-            ).cgPath
+                cornerRadius: radius,
+                cutPositionSet: cutPositionSet,
+                cutLength: cutLength
+            )
+            .cgPath
         )
     }
+}
 
-    /// A wrapper around `UIRectCorner` that adapts corners to leading and trailing terminology.
-    public struct Corner: OptionSet {
-        @Environment(\.layoutDirection) var direction
+//
+internal extension CUIRoundedCornerShape {
+    func cutPath(positionSet: CUIPositionSet?, length: CGFloat?) -> CUIRoundedCornerShape {
+        var newSelf = self
 
-        public typealias RawValue = Int
-        public let rawValue: RawValue
+        newSelf.cutPositionSet = positionSet
+        newSelf.cutLength = length
 
-        public init(rawValue: RawValue) {
-            self.rawValue = rawValue
-        }
-
-        public static let topLeading = Corner(rawValue: 1 << 0)
-        public static let topTrailing = Corner(rawValue: 1 << 1)
-        public static let bottomLeading = Corner(rawValue: 1 << 2)
-        public static let bottomTrailing = Corner(rawValue: 1 << 3)
-        public static let allCorners: Corner = [topLeading, topTrailing, bottomLeading, bottomTrailing]
-
-        #if os(iOS)
-        /// Translates the leading/trailing to left/right depending on the current layout direction.
-        public var rectCorner: UIRectCorner {
-            let isRTL = direction == .rightToLeft
-
-            var rectCorners: UIRectCorner = []
-
-            if self.contains(.topLeading) {
-                rectCorners.insert(isRTL ? .topRight : .topLeft)
-            }
-
-            if self.contains(.topTrailing) {
-                rectCorners.insert(isRTL ? .topLeft : .topRight)
-            }
-
-            if self.contains(.bottomLeading) {
-                rectCorners.insert(isRTL ? .bottomRight : .bottomLeft)
-            }
-
-            if self.contains(.bottomTrailing) {
-                rectCorners.insert(isRTL ? .bottomLeft : .bottomRight)
-            }
-
-            return rectCorners
-        }
-        #endif
-
-        var bezierCorner: BezierCorner {
-            let isRTL = direction == .rightToLeft
-
-            var bezierCorners: BezierCorner = []
-
-            if self.contains(.topLeading) {
-                bezierCorners.insert(isRTL ? .topRight : .topLeft)
-            }
-
-            if self.contains(.topTrailing) {
-                bezierCorners.insert(isRTL ? .topLeft : .topRight)
-            }
-
-            if self.contains(.bottomLeading) {
-                bezierCorners.insert(isRTL ? .bottomRight : .bottomLeft)
-            }
-
-            if self.contains(.bottomTrailing) {
-                bezierCorners.insert(isRTL ? .bottomLeft : .bottomRight)
-            }
-
-            return bezierCorners
-        }
+        return newSelf
     }
 }
 
@@ -130,21 +79,45 @@ struct CUIRoundedCornerShape_Previews: PreviewProvider {
         VStack {
             CUIRoundedCornerShape(radius: 30, corners: .topLeading)
                 .foregroundColor(.yellow)
+                .overlay {
+                    Text(".topLeading")
+                        .foregroundColor(.black)
+                }
 
             CUIRoundedCornerShape(radius: 30, corners: .topTrailing)
                 .foregroundColor(.yellow)
+                .overlay {
+                    Text(".topTrailing")
+                        .foregroundColor(.black)
+                }
 
             CUIRoundedCornerShape(radius: 30, corners: .bottomLeading)
                 .foregroundColor(.yellow)
+                .overlay {
+                    Text(".bottomLeading")
+                        .foregroundColor(.black)
+                }
 
             CUIRoundedCornerShape(radius: 30, corners: .bottomTrailing)
                 .foregroundColor(.yellow)
+                .overlay {
+                    Text(".bottomTrailing")
+                        .foregroundColor(.black)
+                }
 
             CUIRoundedCornerShape(radius: 30, corners: [.topLeading, .topTrailing])
                 .foregroundColor(.yellow)
+                .overlay {
+                    Text("[.topLeading, .topTrailing]")
+                        .foregroundColor(.black)
+                }
 
             CUIRoundedCornerShape(radius: 30, corners: [.topLeading, .bottomTrailing])
                 .foregroundColor(.yellow)
+                .overlay {
+                    Text("[.topLeading, .bottomTrailing]")
+                        .foregroundColor(.black)
+                }
 
             HStack {
                 CUIRoundedCornerShape(radius: 30)
@@ -158,11 +131,20 @@ struct CUIRoundedCornerShape_Previews: PreviewProvider {
                 CUIRoundedCornerShape(radius: 20)
                     .foregroundColor(.yellow)
                     .overlay(alignment: .top, content: {
+                        // Used to check the corner radius.
                         Rectangle().frame(width: 10, height: 20)
+                            .foregroundColor(.black)
                     })
                     .frame(width:50, height: 50)
+
+                CUIRoundedCornerShape(radius: 20)
+                    .stroke(lineWidth: 4)
+                    .foregroundColor(.black)
+                    .frame(width:70, height: 70)
             }
         }
+        .padding()
+        .background(.white)
     }
 }
 

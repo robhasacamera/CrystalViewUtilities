@@ -10,10 +10,12 @@ This package is a base for Crystal UI. It provides several utility views and ext
 
 ### Views
 
+- ``CUIAdaptiveStackView``
 - ``CUIChildSizeReader``
 - ``CUIChildGeometryReader``
 - ``CUIFlowLayout``
-- ``CUIAdaptiveStackView``
+- ``CUITitledGroup``
+- ``CUITitledGroupTextLabel``
 
 ### Shapes
 - ``CUIRoundedCornerShape``
