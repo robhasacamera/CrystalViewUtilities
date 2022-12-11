@@ -37,6 +37,7 @@ public struct CUICorner: OptionSet {
         self.rawValue = rawValue
     }
 
+    public static let none: CUICorner = []
     public static let topLeading = CUICorner(rawValue: 1 << 0)
     public static let topTrailing = CUICorner(rawValue: 1 << 1)
     public static let bottomLeading = CUICorner(rawValue: 1 << 2)

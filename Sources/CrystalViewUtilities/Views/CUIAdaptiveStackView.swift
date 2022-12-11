@@ -36,7 +36,20 @@ public struct CUIAdaptiveStackView<Content: View>: View {
     var verticalSizeClass
     #endif
 
-    var axis: Axis
+    var axis: Axis {
+        if let axisClosure {
+            return axisClosure()
+        }
+
+        guard let axisSizeClassClosure else {
+            // TODO: Log error
+            return . horizontal
+        }
+
+        return axisSizeClassClosure(horizontalSizeClass, verticalSizeClass)
+    }
+    let axisClosure: (() -> Axis)?
+    let axisSizeClassClosure: ((UserInterfaceSizeClass?, UserInterfaceSizeClass?) -> Axis)?
     let horizontalAlignment: HorizontalAlignment
     let verticalAlignment: VerticalAlignment
     let spacing: CGFloat?
@@ -50,13 +63,14 @@ public struct CUIAdaptiveStackView<Content: View>: View {
     ///   - spacing: The distance between adjacent subviews, or nil if you want the stack to choose a default distance for each pair of subviews.
     ///   - content: A view builder that creates the content of this stack.
     public init(
-        axis: @autoclosure () -> Axis,
+        axis: @autoclosure @escaping () -> Axis,
         horizontalAlignment: HorizontalAlignment = .center,
         verticalAlignment: VerticalAlignment = .center,
         spacing: CGFloat? = nil,
         @ViewBuilder content: @escaping () -> Content
     ) {
-        self.axis = axis()
+        self.axisClosure = axis
+        self.axisSizeClassClosure = nil
         self.horizontalAlignment = horizontalAlignment
         self.verticalAlignment = verticalAlignment
         self.spacing = spacing
@@ -74,7 +88,7 @@ public struct CUIAdaptiveStackView<Content: View>: View {
     ///   - spacing: The distance between adjacent subviews, or nil if you want the stack to choose a default distance for each pair of subviews.
     ///   - content: A view builder that creates the content of this stack.
     public init(
-        axis: (
+        axis: @escaping (
             _ horizontalSizeClass: UserInterfaceSizeClass?,
             _ verticalSizeClass: UserInterfaceSizeClass?
         ) -> Axis,
@@ -83,13 +97,12 @@ public struct CUIAdaptiveStackView<Content: View>: View {
         spacing: CGFloat? = nil,
         @ViewBuilder content: @escaping () -> Content
     ) {
-        self.axis = axis(nil, nil)
+        self.axisClosure = nil
+        self.axisSizeClassClosure = axis
         self.horizontalAlignment = horizontalAlignment
         self.verticalAlignment = verticalAlignment
         self.spacing = spacing
         self.content = content
-
-        self.axis = axis(horizontalSizeClass, verticalSizeClass)
     }
     #endif
 

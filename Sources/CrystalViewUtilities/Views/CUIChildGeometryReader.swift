@@ -32,31 +32,10 @@ import SwiftUI
 ///
 /// Adapted from [Wil Gieseler's](https://stackoverflow.com/users/813265/wil-gieseler) [answer on StackOverflow](https://stackoverflow.com/a/60861575/898984).
 public struct CUIChildGeometryReader<Content: View, ID: Hashable>: View {
-    // TODO: Document
-    public struct Proxy {
-        let proxy: GeometryProxy
-
-        internal init(proxy: GeometryProxy) {
-            self.proxy = proxy
-        }
-
-        public var size: CGSize {
-            proxy.size
-        }
-
-        public var safeAreaInsets: EdgeInsets {
-            proxy.safeAreaInsets
-        }
-
-        public func frame(in coordinateSpace: CoordinateSpace) -> CGRect {
-            proxy.frame(in: coordinateSpace)
-        }
-    }
-
     @State
-    var proxy: Proxy? = nil
+    var proxy: GeometryProxy? = nil
     let id: ID
-    let content: (Proxy?) -> Content
+    let content: (GeometryProxy?) -> Content
 
     /// Creates a GeometryReader reader for the view provided.
     ///
@@ -66,7 +45,7 @@ public struct CUIChildGeometryReader<Content: View, ID: Hashable>: View {
     ///   - content: The view to get the geometry for.
     public init(
         id: ID,
-        @ViewBuilder content: @escaping (Proxy?) -> Content
+        @ViewBuilder content: @escaping (GeometryProxy?) -> Content
     ) {
         self.id = id
         self.content = content
@@ -90,7 +69,7 @@ public struct CUIChildGeometryReader<Content: View, ID: Hashable>: View {
                     return
                 }
 
-                self.proxy = Proxy(proxy: proxy)
+                self.proxy = proxy
             }
     }
 }
