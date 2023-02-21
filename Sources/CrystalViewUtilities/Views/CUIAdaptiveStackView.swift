@@ -29,27 +29,34 @@ import SwiftUI
 /// A view that conditionally acts like an `HStack` or `VStack`.
 /// Adapted from https://www.hackingwithswift.com/quick-start/swiftui/how-to-automatically-switch-between-hstack-and-vstack-based-on-size-class
 public struct CUIAdaptiveStackView<Content: View>: View {
-    #if os(iOS)
+#if os(iOS)
     @Environment(\.horizontalSizeClass)
     var horizontalSizeClass
     @Environment(\.verticalSizeClass)
     var verticalSizeClass
-    #endif
+#endif
 
     var axis: Axis {
         if let axisClosure {
             return axisClosure()
         }
-
+#if os(iOS)
         guard let axisSizeClassClosure else {
             // TODO: Log error
-            return . horizontal
+            return .horizontal
         }
 
         return axisSizeClassClosure(horizontalSizeClass, verticalSizeClass)
+
+#else
+        return .horizontal
+#endif
     }
+
     let axisClosure: (() -> Axis)?
+#if os(iOS)
     let axisSizeClassClosure: ((UserInterfaceSizeClass?, UserInterfaceSizeClass?) -> Axis)?
+#endif
     let horizontalAlignment: HorizontalAlignment
     let verticalAlignment: VerticalAlignment
     let spacing: CGFloat?
@@ -70,14 +77,16 @@ public struct CUIAdaptiveStackView<Content: View>: View {
         @ViewBuilder content: @escaping () -> Content
     ) {
         self.axisClosure = axis
+#if os(iOS)
         self.axisSizeClassClosure = nil
+#endif
         self.horizontalAlignment = horizontalAlignment
         self.verticalAlignment = verticalAlignment
         self.spacing = spacing
         self.content = content
     }
 
-    #if os(iOS)
+#if os(iOS)
     /// Creates a `AdaptiveStackView` using the axis provided.
     ///
     /// This initializer provides both the horizontal and vertical size classes for the convenience when deciding which axis to use.
@@ -104,7 +113,7 @@ public struct CUIAdaptiveStackView<Content: View>: View {
         self.spacing = spacing
         self.content = content
     }
-    #endif
+#endif
 
     public var body: some View {
         if axis == .vertical {
