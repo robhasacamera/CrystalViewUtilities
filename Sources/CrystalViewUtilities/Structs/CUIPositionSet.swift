@@ -101,3 +101,55 @@ public enum CUIPositionSet {
         }
     }
 }
+
+extension CUIPositionSet: Hashable {
+    public func hash(into hasher: inout Hasher) {
+        switch self {
+        case .topEdge(let alignment):
+            switch alignment {
+            case .leading:
+                hasher.combine(0)
+            case .center:
+                hasher.combine(1)
+            case .trailing:
+                hasher.combine(2)
+            default:
+                hasher.combine(3)
+            }
+        case .bottomEdge(let alignment):
+            switch alignment {
+            case .leading:
+                hasher.combine(4)
+            case .center:
+                hasher.combine(5)
+            case .trailing:
+                hasher.combine(6)
+            default:
+                hasher.combine(7)
+            }
+        case .leadingEdge(let alignment):
+            switch alignment {
+            case .top:
+                hasher.combine(8)
+            case .center:
+                hasher.combine(9)
+            case .bottom:
+                hasher.combine(10)
+            default:
+                hasher.combine(11)
+            }
+        case .trailingEdge(let alignment):
+            switch alignment {
+            case .top:
+                hasher.combine(12)
+            case .center:
+                hasher.combine(13)
+            case .bottom:
+                hasher.combine(14)
+            default:
+                hasher.combine(15)
+            }
+        }
+    }
+}
+

@@ -29,14 +29,34 @@ import SwiftUI
 /// A view that conditionally acts like an `HStack` or `VStack`.
 /// Adapted from https://www.hackingwithswift.com/quick-start/swiftui/how-to-automatically-switch-between-hstack-and-vstack-based-on-size-class
 public struct CUIAdaptiveStackView<Content: View>: View {
-    #if os(iOS)
+#if os(iOS)
     @Environment(\.horizontalSizeClass)
     var horizontalSizeClass
     @Environment(\.verticalSizeClass)
     var verticalSizeClass
-    #endif
+#endif
 
-    var axis: Axis
+    var axis: Axis {
+        if let axisClosure {
+            return axisClosure()
+        }
+#if os(iOS)
+        guard let axisSizeClassClosure else {
+            // TODO: Log error
+            return .horizontal
+        }
+
+        return axisSizeClassClosure(horizontalSizeClass, verticalSizeClass)
+
+#else
+        return .horizontal
+#endif
+    }
+
+    let axisClosure: (() -> Axis)?
+#if os(iOS)
+    let axisSizeClassClosure: ((UserInterfaceSizeClass?, UserInterfaceSizeClass?) -> Axis)?
+#endif
     let horizontalAlignment: HorizontalAlignment
     let verticalAlignment: VerticalAlignment
     let spacing: CGFloat?
@@ -50,20 +70,23 @@ public struct CUIAdaptiveStackView<Content: View>: View {
     ///   - spacing: The distance between adjacent subviews, or nil if you want the stack to choose a default distance for each pair of subviews.
     ///   - content: A view builder that creates the content of this stack.
     public init(
-        axis: @autoclosure () -> Axis,
+        axis: @autoclosure @escaping () -> Axis,
         horizontalAlignment: HorizontalAlignment = .center,
         verticalAlignment: VerticalAlignment = .center,
         spacing: CGFloat? = nil,
         @ViewBuilder content: @escaping () -> Content
     ) {
-        self.axis = axis()
+        self.axisClosure = axis
+#if os(iOS)
+        self.axisSizeClassClosure = nil
+#endif
         self.horizontalAlignment = horizontalAlignment
         self.verticalAlignment = verticalAlignment
         self.spacing = spacing
         self.content = content
     }
 
-    #if os(iOS)
+#if os(iOS)
     /// Creates a `AdaptiveStackView` using the axis provided.
     ///
     /// This initializer provides both the horizontal and vertical size classes for the convenience when deciding which axis to use.
@@ -74,7 +97,7 @@ public struct CUIAdaptiveStackView<Content: View>: View {
     ///   - spacing: The distance between adjacent subviews, or nil if you want the stack to choose a default distance for each pair of subviews.
     ///   - content: A view builder that creates the content of this stack.
     public init(
-        axis: (
+        axis: @escaping (
             _ horizontalSizeClass: UserInterfaceSizeClass?,
             _ verticalSizeClass: UserInterfaceSizeClass?
         ) -> Axis,
@@ -83,15 +106,14 @@ public struct CUIAdaptiveStackView<Content: View>: View {
         spacing: CGFloat? = nil,
         @ViewBuilder content: @escaping () -> Content
     ) {
-        self.axis = axis(nil, nil)
+        self.axisClosure = nil
+        self.axisSizeClassClosure = axis
         self.horizontalAlignment = horizontalAlignment
         self.verticalAlignment = verticalAlignment
         self.spacing = spacing
         self.content = content
-
-        self.axis = axis(horizontalSizeClass, verticalSizeClass)
     }
-    #endif
+#endif
 
     public var body: some View {
         if axis == .vertical {

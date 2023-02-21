@@ -341,10 +341,6 @@ public extension View {
 
             @State
             var presented = false
-            @State
-            var presented0 = false
-            @State
-            var presented1 = false
 
             var body: some View {
                 VStack {
@@ -354,7 +350,10 @@ public extension View {
                         } label: {
                             Circle().foregroundColor(.yellow)
                         }
-                        .presentToolTip(isPresented: $presented) {
+                        .presentFullScreen(
+                            isPresented: $presented,
+                            dimmed: false
+                        ) {
                             Button("dismiss") {
                                 presented.toggle()
                             }
@@ -367,7 +366,10 @@ public extension View {
                         } label: {
                             Circle().foregroundColor(.yellow)
                         }
-                        .presentToolTip(isPresented: $presented) {
+                        .presentFullScreen(
+                            isPresented: $presented,
+                            dimmed: false
+                        ) {
                             Button("dismiss") {
                                 presented.toggle()
                             }
@@ -378,26 +380,32 @@ public extension View {
 
                     HStack {
                         Button {
-                            presented0.toggle()
+                            presented.toggle()
                         } label: {
                             Circle().foregroundColor(.yellow)
                         }
-                        .presentToolTip(isPresented: $presented0) {
+                        .presentFullScreen(
+                            isPresented: $presented,
+                            dimmed: false
+                        ) {
                             Button("dismiss") {
-                                presented0.toggle()
+                                presented.toggle()
                             }
                             .padding()
                             .background(.gray)
                         }
 
                         Button {
-                            presented1.toggle()
+                            presented.toggle()
                         } label: {
                             Circle().foregroundColor(.yellow)
                         }
-                        .presentToolTip(isPresented: $presented1) {
+                        .presentFullScreen(
+                            isPresented: $presented,
+                            dimmed: false
+                        ) {
                             Button("dismiss") {
-                                presented1.toggle()
+                                presented.toggle()
                             }
                             .padding()
                             .background(.gray)
@@ -411,25 +419,6 @@ public extension View {
         static var previews: some View {
             Preview()
 //                .previewInterfaceOrientation(.landscapeLeft)
-        }
-    }
-
-    extension View {
-        func presentToolTip<Content>(
-            isPresented: Binding<Bool>,
-            presentationEdge: Edge? = nil,
-            dimmed: Bool = true,
-            tapBackgroundToDismiss: Bool = true,
-            onDismiss: (() -> Void)? = nil,
-            @ViewBuilder content: @escaping () -> Content
-        ) -> some View where Content: View {
-            // TODO: Need to document the difference between this and a regular goemtry reader. I think it's that a regular geomtry reader provides the geometry for a parent while this one provides geometry for the child inside of it. So it can use it's own geometry on itself.
-            self.presentFullScreen(
-                isPresented: isPresented,
-                dimmed: false
-            ) {
-                content()
-            }
         }
     }
 #endif

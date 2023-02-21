@@ -35,9 +35,10 @@ public extension CGFloat {
     static let cornerRadius: CGFloat = 10
     /// The minimum length used for any controls that are interactive.
     ///
-    /// This prevents controls from being 
+    /// This prevents controls from being too small to interact with.
     static let minInteractiveLength: CGFloat = 44
 
+    // TODO: Investigate how to apply this to any number
     /// Returns this value divided by 2.
     var half: CGFloat {
         self / 2
