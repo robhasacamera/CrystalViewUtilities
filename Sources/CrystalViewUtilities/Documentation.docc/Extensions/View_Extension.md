@@ -16,7 +16,7 @@
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Presents a Full Screen Cover, without the usual slide up animation.
 
-``CUIChildSizeReader/presentFullScreen(isPresented:dimmed:tapBackgroundToDismiss:onDismiss:content:)``
+``CUIChildSizeReader/presentFullScreen(isPresented:dimmed:tapBackgroundToDismiss:onDismiss:afterPresenting:content:)``
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Presents a view fullscreen, optionally dimming the background.
 
