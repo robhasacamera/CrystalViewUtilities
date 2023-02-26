@@ -97,17 +97,20 @@ public extension View {
         ///   - dimmed: A Boolean that indicates whether the background should be dimmed with a transparent color. Default value is `true`.
         ///   - tapBackgroundToDismiss: A Boolean to indicate if the tapping the background should dismiss the full screen content. Default value is `true`. If this is set to `false`, you will still not be able to interact with the views behind the presented fullscreen view, even when fully visible.
         ///   - onDismiss: The closure to execute when dismissing the modal view.
+        ///   - afterPresenting: The closure to execute after presenting the content.
         ///   - content: The content to display fullscreen.
         func presentFullScreen<Content>(
             isPresented: Binding<Bool>,
             dimmed: Bool = true,
             tapBackgroundToDismiss: Bool = true,
-            onDismiss: (() -> Void)? = nil,
+            onDismiss: CUIAction? = nil,
+            afterPresenting: CUIAction? = nil,
             @ViewBuilder content: @escaping () -> Content
         ) -> some View where Content: View {
             FullScreenCoverContainer(
                 isPresented: isPresented,
                 onDismiss: onDismiss,
+                afterPresenting: afterPresenting,
                 dimmed: dimmed,
                 tapBackgroundToDismiss: tapBackgroundToDismiss,
                 originalContent: self,
@@ -193,6 +196,7 @@ public extension View {
         var isPresented: Bool
 
         var onDismiss: CUIAction?
+        var afterPresenting: CUIAction?
         var originalContent: OriginalContent
         var presentedContent: PresentedContent
         var dimmed: Bool
@@ -201,6 +205,7 @@ public extension View {
         internal init(
             isPresented: Binding<Bool>,
             onDismiss: CUIAction? = nil,
+            afterPresenting: CUIAction? = nil,
             dimmed: Bool = false,
             tapBackgroundToDismiss: Bool = false,
             originalContent: OriginalContent,
@@ -208,6 +213,7 @@ public extension View {
         ) {
             self._isPresented = isPresented
             self.onDismiss = onDismiss
+            self.afterPresenting = afterPresenting
             self.originalContent = originalContent
             self.presentedContent = presentedContent
             self.dimmed = dimmed
@@ -235,6 +241,13 @@ public extension View {
                             internalIsPresented.toggle()
                         }
                     }
+                })
+                .onChange(of: internalIsPresented, perform: { newValue in
+                    guard newValue else {
+                        return
+                    }
+
+                    afterPresenting?()
                 })
                 .fullScreenCover(
                     isPresented: $internalIsPresented,
